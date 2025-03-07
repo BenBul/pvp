@@ -18,3 +18,17 @@ model User {
   name  String
   email String @unique
 }
+
+model Form {
+  id    String @id @default(uuid())
+  name  String
+  QRLink    String
+}
+
+model Question {
+  id    String @id @default(uuid())
+}
+
+model Anwser {
+  id    String @id @default(uuid())
+}
