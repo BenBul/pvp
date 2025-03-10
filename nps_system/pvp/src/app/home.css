@@ -1,0 +1,114 @@
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32px 50px;
+  background: #F8F0FB;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar a {
+  font-size: 32px;
+  text-decoration: none;
+  color: #211A1D;
+  margin-left: 20px;
+}
+
+.navbar a:hover {
+  text-decoration: underline;
+}
+
+/* Hero Section */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+}
+
+.hero h1 {
+  font-size: 128px;
+  font-weight: 400;
+  text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.hero p {
+  font-size: 40px;
+  max-width: 600px;
+  margin-top: 20px;
+}
+
+/* Box next to Hero Text */
+.hero-box {
+  width: 540px;
+  height: 484px;
+  background: #F1DEDE;
+  border-radius: 50px;
+  margin-top: 30px;
+}
+
+/* Section Styling */
+.section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1314px;
+  margin: 100px auto;
+  padding: 50px;
+  border-radius: 100px;
+}
+
+.section h2 {
+  font-size: 72px;
+  font-weight: 400;
+}
+
+.section p {
+  font-size: 32px;
+  max-width: 600px;
+}
+
+.image-box {
+  width: 523px;
+  height: 573px;
+  background: #F1DEDE;
+  border-radius: 50px;
+}
+
+/* About Us Section */
+.about {
+  background: linear-gradient(180deg, #8075FF 0%, #995EE1 100%);
+}
+
+/* Why Us Section */
+.why {
+  background: linear-gradient(180deg, #8075FF 0%, #995EE1 100%);
+}
+
+/* Call to Action */
+.cta {
+  text-align: center;
+  font-size: 64px;
+  margin-top: 50px;
+}
+
+.cta-button {
+  display: inline-block;
+  background: #6320EE;
+  color: #F8F0FB;
+  padding: 12px 24px;
+  font-size: 24px;
+  border-radius: 8px;
+  margin-top: 20px;
+  text-decoration: none;
+}
+
+.cta-button:hover {
+  background: #4e1ad1;
+}
