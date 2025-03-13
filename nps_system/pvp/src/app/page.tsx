@@ -1,14 +1,33 @@
-import React from "react";
+"use client";
+
+import React, { useRef } from "react";
 
 export default function Home() {
+    
+    const aboutUsRef = useRef(null);
+    const whyUsRef = useRef(null);
+
+    const scrollToSection = (elementRef) => {
+        elementRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    };
+
     return (
         <div>
             {/* NAVIGATION */}
             <nav className="navbar">
                 <div className="logo">Logo</div>
                 <div className="nav-links">
-                    <a href="#">About Us</a>
-                    <a href="#">Why Us</a>
+                    <a href="#about-us" onClick={(e) => {
+                        e.preventDefault();
+                        scrollToSection(aboutUsRef);
+                    }}>About Us</a>
+                    <a href="#why-us" onClick={(e) => {
+                        e.preventDefault();
+                        scrollToSection(whyUsRef);
+                    }}>Why Us</a>
                     <a href="#">Login</a>
                     <a href="#">Register</a>
                 </div>
@@ -26,7 +45,7 @@ export default function Home() {
             {/* FRAME 10 - Container for About Us & Why Us */}
             <section className="frame-10">
                 {/* FRAME 7 - About Us Section */}
-                <div className="frame-7">
+                <div id="about-us" ref={aboutUsRef} className="frame-7">
                     <h2>About Us</h2>
                     <p className="about-text">
                         Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard Contrary to popular belief, Lorem Ipsum is not simply random text.
@@ -36,7 +55,7 @@ export default function Home() {
                 </div>
 
                 {/* FRAME 9 - Why Us Section */}
-                <div className="frame-9">
+                <div id="why-us" ref={whyUsRef} className="frame-9">
                     <h2>Why Us</h2>
                     <p className="why-text">
                         Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type.
@@ -50,7 +69,7 @@ export default function Home() {
                 {/* FRAME 13 - Text Container */}
                 <div className="frame-13">
                     <h2>Still not sure?</h2>
-                    <p>It’s completely free, give it a try!</p>
+                    <p>It's completely free, give it a try!</p>
                 </div>
 
                 {/* BUTTON with Correct 46px Gap */}
