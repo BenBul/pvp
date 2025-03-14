@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useRef } from "react";
+import Link from "next/link";
 
 export default function Home() {
-    
+
     const aboutUsRef = useRef(null);
     const whyUsRef = useRef(null);
 
@@ -30,6 +31,7 @@ export default function Home() {
                     }}>Why Us</a>
                     <a href="#">Login</a>
                     <a href="#">Register</a>
+                    <Link href="/qr">QR</Link>
                 </div>
             </nav>
 
