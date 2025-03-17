@@ -25,353 +25,68 @@ a {
   text-decoration: none;
 }
 
-/* NAVIGATION */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 49px 79px 32px 50px;
-  width: 1440px;
-  height: 119px;
-  background: var(--background);
-  margin: 0 auto;
+/* Override Bootstrap's defaults */
+.container, .row, .col {
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-/* Logo */
-.logo {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 400;
-  font-size: 32px;
-  line-height: 120%;
-  display: flex;
-  align-items: center;
-  color: #211A1D;
-  width: 762px;
-  height: 38px;
-  margin: 0 auto;
+/* Reset background colors */
+.bg-light {
+  background-color: transparent !important;
 }
 
-/* Navigation Links */
-.nav-links {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 50px;
-  font-size: 32px;
-  white-space: nowrap;
-}
-
-/* HERO SECTION - Frame 5 */
+/* Adjust Hero Section */
 .hero {
   display: flex;
   flex-direction: row;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  padding: 0;
-  gap: 92px;
   width: 1314px;
   height: 484px;
-  margin: 123px auto 0 auto; /* Adds correct space from the navbar */
+  margin: 123px auto 0 auto;
 }
 
-/* Frame 4 - Container for PVP text & description */
-.hero-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 682px;
-  height: 484px;
+/* Fix Navbar alignment */
+.navbar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 20px 50px !important;
+  width: 100% !important;
+  background: var(--background) !important; /* Ensure original background */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-/* PVP Text */
-.hero-content h1 {
-  width: 497px;
-  height: 218px;
-  font-family: 'Roboto';
-  font-weight: 400;
-  font-size: 128px;
-  line-height: 120%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  color: #211A1D;
-  text-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-  border: none;
-  margin-left: 40px;
+/* Center the navbar brand */
+.navbar-brand {
+  font-size: 32px !important;
+  font-weight: bold !important;
+  color: var(--foreground) !important;
 }
 
-/* Lorem Ipsum Text */
-.hero-content p {
-  width: 682px;
-  height: 286px;
-  font-family: 'Roboto';
-  font-weight: 400;
-  font-size: 40px;
-  line-height: 120%;
-  display: flex;
-  align-items: center;
-  text-align: center;
-  color: #211A1D;
+/* Navbar Links */
+.navbar-nav {
+  display: flex !important;
+  gap: 30px !important;
+  font-size: 20px !important;
 }
 
-/* Rectangle 3 - The Image Box */
-.hero-image {
-  width: 540px;
-  height: 484px;
-  background: #F1DEDE;
-  border-radius: 50px;
+.navbar-nav .nav-link {
+  font-weight: 500 !important;
+  color: var(--foreground) !important;
+  padding: 10px 15px !important;
 }
 
-/* FRAME 10 - Container for About Us & Why Us */
-/* FRAME 10 - Parent Container for About Us & Why Us */
-.frame-10 {
-  display: flex;
-  flex-direction: column; /* Stack Frame 7 and Frame 9 vertically */
-  align-items: center; /* Ensures both frames are centered */
-  justify-content: flex-start;
-  padding: 0;
-  gap: 368px; /* Ensures correct spacing between About Us & Why Us */
-  width: 1314px;
-  height: auto; /* Let content define height */
-  margin: 323px auto 0 auto; /* Adds space from Hero section */
-  position: relative;
+.navbar-toggler {
+  border: none !important;
 }
 
-
-/* FRAME 7 - About Us Section */
-.frame-7 {
-  position: relative;
-  width: 1314px;
-  height: 754px;
-  background: linear-gradient(180deg, #8075FF 0%, #995EE1 100%);
-  border-radius: 100px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Fix mobile navigation */
+@media (max-width: 992px) {
+  .navbar-nav {
+    flex-direction: column !important;
+    text-align: center;
+    padding-top: 20px;
+  }
 }
-
-/* About Us Title */
-.frame-7 h2 {
-  position: absolute;
-  width: 344px;
-  height: 100px;
-  left: 778px;
-  top: 119px;
-  font-family: 'Roboto';
-  font-size: 72px;
-  font-weight: 400;
-  text-align: center;
-  color: #211A1D;
-}
-
-/* About Us Paragraph */
-.about-text {
-  position: absolute;
-  width: 568px;
-  height: 397px;
-  left: 691px;
-  top: 231px;
-  font-family: 'Roboto';
-  font-size: 32px;
-  line-height: 120%;
-  color: #211A1D;
-  display: flex;
-  align-items: center;
-}
-
-/* About Us Rectangle */
-.about-image {
-  position: absolute;
-  width: 523px;
-  height: 573px;
-  left: 74px;
-  top: 89px;
-  background: #F1DEDE;
-  border-radius: 50px;
-}
-
-/* FRAME 9 - Why Us Section */
-.frame-9 {
-  position: relative;
-  width: 1314px;
-  height: 814px;
-  background: linear-gradient(180deg, #8075FF 0%, #995EE1 100%);
-  border-radius: 100px;
-  margin-top: 368px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-}
-
-/* Why Us Heading */
-.frame-9 h2 {
-  position: absolute;
-  width: 240px;
-  height: 86px;
-  left: 185px;
-  top: 180px;
-
-  font-family: 'Roboto';
-  font-style: normal;
-  font-weight: 400;
-  font-size: 72px;
-  line-height: 120%;
-  display: flex;
-  align-items: center;
-  text-align: center;
-
-  color: #211A1D;
-}
-
-
-/* Why Us Text */
-.why-text {
-  position: absolute;
-  width: 547px;
-  height: auto;
-  top: 55%;
-  left: 25%;
-  transform: translate(-50%, -50%);
-  font-family: 'Roboto';
-  font-style: normal;
-  font-weight: 400;
-  font-size: 36px;
-  line-height: 120%;
-  display: flex;
-  align-items: center;
-  text-align: center;
-  color: #211A1D;
-}
-
-
-
-/* Rectangle 5 (Box on top right) */
-.why-image {
-  position: absolute;
-  width: 536px;
-  height: 585px;
-  right: 50px; /* Adjusted to move rectangle more inside */
-  top: 100px; /* Adjusted to match Figma */
-  background: #F1DEDE;
-  border-radius: 50px;
-}
-
-/* FRAME 16 - Call to Action */
-.frame-16 {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  gap: 46px;
-  width: 1440px;
-  height: 821px;
-  margin: 401px auto 0 auto; /* Ensures spacing from Frame 9 */
-}
-
-/* FRAME 13 - Text Container */
-.frame-13 {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 648px;
-  height: 197px;
-  text-align: center;
-  gap: 10px; /* REDUCE GAP BETWEEN TEXTS */
-}
-
-/* Heading - Still not sure? */
-.frame-13 h2 {
-  width: 648px;
-  height: 159px;
-  font-family: 'Roboto';
-  font-size: 64px;
-  line-height: 120%;
-  text-align: center;
-  color: #211A1D;
-  margin-bottom: 5px; /* ADD SMALLER BOTTOM MARGIN */
-}
-
-/* Subtext - It’s completely free, give it a try! */
-.frame-13 p {
-  width: 648px;
-  height: 38px;
-  font-family: 'Roboto';
-  font-size: 32px;
-  line-height: 120%;
-  text-align: center;
-  color: #211A1D;
-  margin-top: 5px; /* ADD SMALLER TOP MARGIN */
-}
-/* FRAME 15 - Container for Button & Footer */
-.frame-15 {
-  width: 1440px;
-  height: 578px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  gap: 20px; /* Space between button and footer */
-}
-/* BUTTON - Sign Up */
-.button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 12px;
-  gap: 8px;
-
-  width: 229px;
-  height: 65px;
-  background: #6320EE;
-  border: 1px solid #767676;
-  border-radius: 8px;
-  cursor: pointer;
-
-  font-family: 'Inter', sans-serif;
-  font-size: 24px;
-  font-weight: 400;
-  color: #F8F0FB;
-  text-align: center;
-
-  transition: all 0.3s ease-in-out;
-}
-
-/* Hover & Click Effect */
-.button:hover {
-  background: #5200CC;
-}
-
-.button:active {
-  background: #3F00AA;
-}
-/* FRAME 14 - Footer Background */
-.frame-14 {
-  width: 100%;
-  height: 136px;
-  background: #F8F0FB;
-  display: flex;
-  justify-content: center; /* Center horizontally */
-  align-items: center; /* Center vertically */
-  margin-top: 10px; /* This fixes the gap between the button and footer */
-}
-
-/* Footer Text */
-.footer-text {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 400;
-  font-size: 20px;
-  line-height: 120%;
-  text-align: center;
-  color: #000000;
-  width: 100%;
-}
-
-
