@@ -14,21 +14,56 @@ datasource db {
 }
 
 model User {
-  id    String @id @default(uuid())
-  name  String
-  email String @unique
+  id         String     @id @default(uuid())
+  username   String     @map("username") @db.VarChar
+  email      String     @map("email") @db.VarChar
+  role       String     @map("role") @db.VarChar
+  created_at DateTime   @map("created_at") @db.Timestamp
+  surveys    Survey[]
+  answers    Answer[]
+  following  Follows[]  @relation("following")
+  followers  Follows[]  @relation("follower")
 }
 
-model Form {
-  id    String @id @default(uuid())
-  name  String
-  QRLink    String
+model Survey {
+  id          String     @id @default(uuid())
+  title       String     @map("title") @db.VarChar
+  description String     @map("description") @db.Text
+  status      String     @map("status") @db.VarChar
+  created_at  DateTime   @map("created_at") @db.Timestamp
+  user_id     String     @map("user_id")
+  user        User       @relation(fields: [user_id], references: [id])
+  questions   Question[]
 }
 
 model Question {
-  id    String @id @default(uuid())
+  id            String   @id @default(uuid())
+  survey_id     String   @map("survey_id")
+  question_text String   @map("question_text") @db.Text
+  question_type String   @map("question_type") @db.VarChar
+  qr_code       String   @map("qr_code") @db.VarChar
+  created_at    DateTime @map("created_at") @db.Timestamp
+  survey        Survey   @relation(fields: [survey_id], references: [id])
+  answers       Answer[]
 }
 
-model Anwser {
-  id    String @id @default(uuid())
+model Answer {
+  id           String   @id @default(uuid())
+  question_id  String   @map("question_id")
+  user_id      String?  @map("user_id")
+  answer_text  String   @map("answer_text") @db.Text
+  rating       Int?     @map("rating") @db.Integer
+  created_at   DateTime @map("created_at") @db.Timestamp
+  question     Question @relation(fields: [question_id], references: [id])
+  user         User?    @relation(fields: [user_id], references: [id])
+}
+
+model Follows {
+  following_user_id String @map("following_user_id")
+  followed_user_id  String @map("followed_user_id")
+  created_at        DateTime @map("created_at") @db.Timestamp
+  following         User   @relation("following", fields: [following_user_id], references: [id])
+  follower          User   @relation("follower", fields: [followed_user_id], references: [id])
+
+  @@id([following_user_id, followed_user_id])
 }
