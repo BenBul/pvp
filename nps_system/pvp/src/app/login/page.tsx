@@ -2,22 +2,28 @@
 
 import React, { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Container, Card, CardContent, Typography, TextField, Button, Box, Avatar } from '@mui/material';
+import { useRouter } from 'next/navigation';
+import { Container, Card, CardContent, Typography, TextField, Button, Box, Avatar, Alert } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [emailError, setEmailError] = useState(false);
-    const [passwordError, setPasswordError] = useState(false);
+    const [loginError, setLoginError] = useState('');
+    const router = useRouter();
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        const data = new FormData(event.currentTarget);
-        console.log({
-            email: data.get('email'),
-            password: data.get('password'),
-        });
+    const handleSubmit = async (email:string , password: string) => {
+        setLoginError('');
+        try {
+            const response = await fakeLoginApi(email, password);
+            if (response.success) {
+                router.push('/dashboard');
+            } else {
+                setLoginError('Invalid email or password');
+            }
+        } catch (error) {
+            setLoginError('An error occurred. Please try again.');
+        }
     };
 
     const validateEmail = (email: string) => {
@@ -28,16 +34,14 @@ const LoginPage = () => {
     const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
         setEmail(value);
-        setEmailError(!validateEmail(value));
     };
 
     const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
         setPassword(value);
-        setPasswordError(value.length < 6);
     };
 
-    const isFormValid = !emailError && !passwordError && email !== '' && password !== '';
+    const isFormValid = email !== '' && password !== '';
 
     return (
         <Container maxWidth={false} className="d-flex align-items-center justify-content-center vh-100 ml-0" sx={{ bgcolor: 'background.default' }}>
@@ -51,34 +55,27 @@ const LoginPage = () => {
                     <Typography component="h1" variant="h5" className="mb-3">
                         Sign in
                     </Typography>
-                    <Box component="form" onSubmit={handleSubmit} noValidate>
+                    {loginError && <Alert severity="error" className="mb-3">{loginError}</Alert>}
+                    <Box>
                         <TextField
                             margin="normal"
-                            required
                             fullWidth
                             label="Email Address"
                             autoComplete="email"
                             value={email}
                             onChange={handleEmailChange}
-                            error={emailError}
-                            helperText={emailError ? 'Invalid email format' : ''}
                         />
                         <TextField
                             margin="normal"
-                            required
                             fullWidth
-                            name="password"
                             label="Password"
                             type="password"
-                            id="password"
                             autoComplete="current-password"
                             value={password}
                             onChange={handlePasswordChange}
-                            error={passwordError}
-                            helperText={passwordError ? 'Password must be at least 6 characters' : ''}
                             className='mb-5'
                         />
-                        <Button type='submit' sx={{ borderRadius: '15px'}} fullWidth variant="contained" color="secondary" disabled={!isFormValid}>
+                        <Button onClick={() => handleSubmit(email, password)} sx={{ borderRadius: '15px'}} fullWidth variant="contained" color="secondary" disabled={!isFormValid}>
                             Sign In
                         </Button>
                     </Box>
@@ -86,6 +83,19 @@ const LoginPage = () => {
             </Card>
         </Container>
     );
+};
+
+// Placeholder for the login API call
+const fakeLoginApi = async (email: string, password: string) => {
+    return new Promise<{ success: boolean }>((resolve) => {
+        setTimeout(() => {
+            if (email === 'test@example.com' && password === 'password') {
+                resolve({ success: true });
+            } else {
+                resolve({ success: false });
+            }
+        }, 1000);
+    });
 };
 
 export default LoginPage;
