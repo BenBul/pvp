@@ -26,11 +26,6 @@ const LoginPage = () => {
         }
     };
 
-    const validateEmail = (email: string) => {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email);
-    };
-
     const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
         setEmail(value);
@@ -85,7 +80,6 @@ const LoginPage = () => {
     );
 };
 
-// Placeholder for the login API call
 const fakeLoginApi = async (email: string, password: string) => {
     return new Promise<{ success: boolean }>((resolve) => {
         setTimeout(() => {
