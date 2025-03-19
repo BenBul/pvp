@@ -41,7 +41,7 @@ const LoginPage = () => {
 
     return (
         <Container maxWidth={false} className="d-flex align-items-center justify-content-center vh-100 ml-0" sx={{ bgcolor: 'background.default' }}>
-            <Card className="p-4" style={{ maxWidth: '400px' }} elevation={3}>
+            <Card className="p-4" style={{ maxWidth: '400px', borderRadius: '25px' }} elevation={3}>
                 <CardContent className="text-center">
                     <Box className="mb-4">
                         <Avatar className="m-auto" sx={{ bgcolor: 'primary.main' }}>
@@ -78,7 +78,7 @@ const LoginPage = () => {
                             helperText={passwordError ? 'Password must be at least 6 characters' : ''}
                             className='mb-5'
                         />
-                        <Button type='submit' fullWidth variant="contained" color="secondary" disabled={!isFormValid}>
+                        <Button type='submit' sx={{ borderRadius: '15px'}} fullWidth variant="contained" color="secondary" disabled={!isFormValid}>
                             Sign In
                         </Button>
                     </Box>
