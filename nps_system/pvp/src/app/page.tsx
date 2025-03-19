@@ -1,5 +1,6 @@
 "use client";
-
+import "./home.css";
+import "./globals.css";
 import React, { useRef } from "react";
 import Link from "next/link";
 
@@ -29,7 +30,7 @@ export default function Home() {
                         e.preventDefault();
                         scrollToSection(whyUsRef);
                     }}>Why Us</a>
-                    <a href="#">Login</a>
+                    <Link href="/login">Login</Link>
                     <a href="#">Register</a>
                     <Link href="/qr">QR</Link>
                 </div>
