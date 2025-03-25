@@ -25,7 +25,6 @@ a {
   text-decoration: none;
 }
 
-/* NAVIGATION */
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -37,7 +36,6 @@ a {
   margin: 0 auto;
 }
 
-/* Logo */
 .logo {
   font-family: 'Inter';
   font-style: normal;
@@ -52,7 +50,6 @@ a {
   margin: 0 auto;
 }
 
-/* Navigation Links */
 .nav-links {
   display: flex;
   justify-content: space-between;
