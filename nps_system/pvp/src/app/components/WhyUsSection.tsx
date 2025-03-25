@@ -6,7 +6,7 @@ import { Container } from "react-bootstrap";
 
 export default function WhyUsSection() {
     return (
-        <section id="why-us" style={{ marginTop: "368px", display: "flex", justifyContent: "center" }}> {/* ← Added ID here */}
+        <section id="why-us" style={{ marginTop: "368px", display: "flex", justifyContent: "center" }}>
             <Container
                 style={{
                     position: "relative",
@@ -16,7 +16,7 @@ export default function WhyUsSection() {
                     borderRadius: "100px",
                 }}
             >
-                {/* Heading */}
+
                 <h2
                     style={{
                         position: "absolute",
@@ -37,7 +37,7 @@ export default function WhyUsSection() {
                     Why Us
                 </h2>
 
-                {/* Description Text */}
+
                 <p
                     style={{
                         position: "absolute",
@@ -59,7 +59,7 @@ export default function WhyUsSection() {
                     standard dummy text ever since the 1500s, when an unknown printer took a galley of type.
                 </p>
 
-                {/* Pink Rectangle */}
+
                 <div
                     style={{
                         position: "absolute",

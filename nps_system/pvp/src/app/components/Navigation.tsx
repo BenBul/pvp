@@ -6,7 +6,7 @@ const linkStyle: React.CSSProperties = {
     textDecoration: "none",
     color: "#211A1D",
     cursor: "pointer",
-    display: "inline-block", // ensures pointer works consistently
+    display: "inline-block",
     transition: "color 0.3s ease",
 };
 
@@ -23,7 +23,7 @@ export default function Navigation({ onScrollTo }: { onScrollTo: (id: string) =>
                 gap: "641px",
             }}
         >
-            {/* Logo */}
+
             <div
                 style={{
                     fontFamily: "Inter",
@@ -38,7 +38,7 @@ export default function Navigation({ onScrollTo }: { onScrollTo: (id: string) =>
                 Logo
             </div>
 
-            {/* Navigation Links */}
+
             <div
                 style={{
                     fontFamily: "Roboto",

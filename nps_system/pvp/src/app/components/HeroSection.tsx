@@ -10,7 +10,7 @@ export default function HeroSection() {
                         display: "flex",
                         flexDirection: "row",
                         alignItems: "flex-end",
-                        flexWrap: "nowrap", // ✅ Fix
+                        flexWrap: "nowrap",
                         gap: "92px",
                         maxWidth: "1314px",
                         width: "100%",
@@ -19,12 +19,12 @@ export default function HeroSection() {
 
                 >
 
-                    {/* Text Column */}
+
                     <div
                         className="d-flex flex-column align-items-center justify-content-start"
                         style={{width: "682px", height: "484px"}}
                     >
-                        {/* PVP Title */}
+
                         <div
                             style={{
                                 width: "497px",
@@ -37,17 +37,17 @@ export default function HeroSection() {
                                 justifyContent: "center",
                                 textAlign: "center",
                                 color: "#211A1D",
-                                // border: "1px solid #000", ← Uncomment if needed
+
                                 textShadow: "0px 4px 4px rgba(0, 0, 0, 0.25)",
-                                padding: "0 24px", // Adds space inside the box
-                                marginLeft: "92.5px", // ← or 50, 60 — whatever looks perfect
+                                padding: "0 24px",
+                                marginLeft: "92.5px",
 
                             }}
                         >
                             PVP
                         </div>
 
-                        {/* Description */}
+
                         <p
                             style={{
                                 width: "682px",
@@ -68,7 +68,7 @@ export default function HeroSection() {
                         </p>
                     </div>
 
-                    {/* Pink Rectangle */}
+
                     <div
                         style={{
                             marginLeft: "auto",

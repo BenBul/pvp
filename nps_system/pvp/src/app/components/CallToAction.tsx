@@ -1,6 +1,6 @@
 import React from "react";
 import { Container, Button } from "react-bootstrap";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward"; // You can choose another icon if preferred
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 export default function CallToAction() {
     return (
@@ -16,7 +16,7 @@ export default function CallToAction() {
                     gap: "46px",
                 }}
             >
-                {/* Text Content */}
+
                 <div style={{ textAlign: "center", maxWidth: "648px" }}>
                     <h2
                         style={{
@@ -42,7 +42,7 @@ export default function CallToAction() {
                     </p>
                 </div>
 
-                {/* Button */}
+
                 <Button
                     style={{
                         width: "229px",

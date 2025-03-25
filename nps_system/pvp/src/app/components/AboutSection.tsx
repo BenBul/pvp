@@ -3,7 +3,7 @@ import { Container } from "react-bootstrap";
 
 export default function AboutSection() {
     return (
-        <section id="about-us" style={{ marginTop: "323px" }}> {/* ← Added ID here */}
+        <section id="about-us" style={{ marginTop: "323px" }}>
             <div style={{ display: "flex", justifyContent: "center" }}>
                 <Container
                     style={{
@@ -14,7 +14,7 @@ export default function AboutSection() {
                         borderRadius: "100px",
                     }}
                 >
-                    {/* Title */}
+
                     <h2
                         style={{
                             position: "absolute",
@@ -35,7 +35,7 @@ export default function AboutSection() {
                         About Us
                     </h2>
 
-                    {/* Text Block */}
+
                     <p
                         style={{
                             position: "absolute",
@@ -57,7 +57,7 @@ export default function AboutSection() {
                         Latin literature from 45 BC, making it over 2000 years old. Richard
                     </p>
 
-                    {/* Pink Rectangle */}
+
                     <div
                         style={{
                             position: "absolute",
