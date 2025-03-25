@@ -15,6 +15,7 @@ export default function Navigation({ onScrollTo }: { onScrollTo: (id: string) =>
                 justifyContent: "space-between",
                 gap: "641px",
             }}
+            
         >
             {/* Logo */}
             <div
@@ -58,8 +59,9 @@ export default function Navigation({ onScrollTo }: { onScrollTo: (id: string) =>
                 }} style={{textDecoration: "none", color: "#211A1D"}}>
                     Why Us
                 </a>
-                <a href="#" style={{textDecoration: "none", color: "#211A1D"}}>Login</a>
+                <a href="/login" style={{textDecoration: "none", color: "#211A1D"}}>Login</a>
                 <a href="#" style={{textDecoration: "none", color: "#211A1D"}}>Register</a>
+                <a href="/qr" style={{textDecoration: "none", color: "#211A1D"}}>QR</a>
             </div>
         </div>
     );

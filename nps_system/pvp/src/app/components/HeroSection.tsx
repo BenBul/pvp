@@ -16,6 +16,7 @@ export default function HeroSection() {
                         width: "100%",
                         height: "484px",
                     }}
+
                 >
 
                     {/* Text Column */}
