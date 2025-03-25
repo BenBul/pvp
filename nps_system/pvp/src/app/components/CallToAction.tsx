@@ -1,5 +1,6 @@
 import React from "react";
 import { Container, Button } from "react-bootstrap";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward"; // You can choose another icon if preferred
 
 export default function CallToAction() {
     return (
@@ -58,7 +59,7 @@ export default function CallToAction() {
                         gap: "8px",
                     }}
                 >
-                    Sign-up →
+                    Sign-up <ArrowForwardIcon fontSize="medium" />
                 </Button>
             </div>
         </section>

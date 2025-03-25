@@ -1,7 +1,14 @@
 "use client";
 
 import React from "react";
-import { Container } from "react-bootstrap";
+
+const linkStyle: React.CSSProperties = {
+    textDecoration: "none",
+    color: "#211A1D",
+    cursor: "pointer",
+    display: "inline-block", // ensures pointer works consistently
+    transition: "color 0.3s ease",
+};
 
 export default function Navigation({ onScrollTo }: { onScrollTo: (id: string) => void }) {
     return (
@@ -15,7 +22,6 @@ export default function Navigation({ onScrollTo }: { onScrollTo: (id: string) =>
                 justifyContent: "space-between",
                 gap: "641px",
             }}
-            
         >
             {/* Logo */}
             <div
@@ -43,25 +49,62 @@ export default function Navigation({ onScrollTo }: { onScrollTo: (id: string) =>
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    whiteSpace: "nowrap", // <- this is key!
-                    gap: "32px",           // optional for spacing
+                    whiteSpace: "nowrap",
+                    gap: "32px",
                 }}
             >
-                <a href="#about-us" onClick={(e) => {
-                    e.preventDefault();
-                    onScrollTo("about-us");
-                }} style={{textDecoration: "none", color: "#211A1D"}}>
+                <a
+                    href="#about-us"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        onScrollTo("about-us");
+                    }}
+                    style={linkStyle}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "#6320EE")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "#211A1D")}
+                >
                     About Us
                 </a>
-                <a href="#why-us" onClick={(e) => {
-                    e.preventDefault();
-                    onScrollTo("why-us");
-                }} style={{textDecoration: "none", color: "#211A1D"}}>
+
+                <a
+                    href="#why-us"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        onScrollTo("why-us");
+                    }}
+                    style={linkStyle}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "#6320EE")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "#211A1D")}
+                >
                     Why Us
                 </a>
-                <a href="/login" style={{textDecoration: "none", color: "#211A1D"}}>Login</a>
-                <a href="#" style={{textDecoration: "none", color: "#211A1D"}}>Register</a>
-                <a href="/qr" style={{textDecoration: "none", color: "#211A1D"}}>QR</a>
+
+                <a
+                    href="/login"
+                    style={linkStyle}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "#6320EE")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "#211A1D")}
+                >
+                    Login
+                </a>
+
+                <a
+                    href="#"
+                    style={linkStyle}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "#6320EE")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "#211A1D")}
+                >
+                    Register
+                </a>
+
+                <a
+                    href="/qr"
+                    style={linkStyle}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "#6320EE")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "#211A1D")}
+                >
+                    QR
+                </a>
             </div>
         </div>
     );

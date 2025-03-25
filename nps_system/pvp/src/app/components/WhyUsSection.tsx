@@ -1,11 +1,12 @@
 "use client";
 
+
 import React from "react";
 import { Container } from "react-bootstrap";
 
 export default function WhyUsSection() {
     return (
-        <section style={{ marginTop: "368px", display: "flex", justifyContent: "center" }}>
+        <section id="why-us" style={{ marginTop: "368px", display: "flex", justifyContent: "center" }}> {/* ← Added ID here */}
             <Container
                 style={{
                     position: "relative",

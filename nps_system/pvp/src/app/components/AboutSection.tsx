@@ -3,7 +3,7 @@ import { Container } from "react-bootstrap";
 
 export default function AboutSection() {
     return (
-        <section style={{ marginTop: "323px" }}>
+        <section id="about-us" style={{ marginTop: "323px" }}> {/* ← Added ID here */}
             <div style={{ display: "flex", justifyContent: "center" }}>
                 <Container
                     style={{

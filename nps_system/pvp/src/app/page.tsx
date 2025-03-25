@@ -6,6 +6,7 @@ import HeroSection from "./components/HeroSection";
 import AboutSection from "./components/AboutSection";
 import WhyUsSection from "./components/WhyUsSection";
 import CallToAction from "./components/CallToAction";
+import Footer from "./components/Footer";
 
 
 
@@ -22,6 +23,7 @@ export default function Home() {
             <AboutSection />
             <WhyUsSection />
             <CallToAction />
+            <Footer />
 
 
         </main>
