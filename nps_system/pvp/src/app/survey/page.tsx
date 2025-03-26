@@ -157,10 +157,10 @@ export default function SurveysPage() {
           {/* Header */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+              <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
                 Hello Vardas!
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="h5" color="text.secondary">
                 Manage your surveys and forms
               </Typography>
             </Box>
