@@ -4,27 +4,35 @@ import { Container } from "react-bootstrap";
 export default function HeroSection() {
     return (
         <section style={{ marginTop: "123px", backgroundColor: "#F8F0FB" }}>
-            <Container className="d-flex justify-content-start" style={{ paddingLeft: "100px" }}>
             <div
+                style={{
+                    display: "flex",
+                    justifyContent: "flex-start",
+                    paddingLeft: "100px",
+                }}
+            >
+                <Container
                     style={{
                         display: "flex",
                         flexDirection: "row",
                         alignItems: "flex-end",
-                        flexWrap: "nowrap",
+                        justifyContent: "space-between",
                         gap: "92px",
-                        maxWidth: "1314px",
-                        width: "100%",
+                        width: "1314px",
                         height: "484px",
+                        padding: 0,
                     }}
-
                 >
-
-
                     <div
-                        className="d-flex flex-column align-items-center justify-content-start"
-                        style={{width: "682px", height: "484px"}}
+                        style={{
+                            width: "682px",
+                            height: "484px",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "flex-start",
+                        }}
                     >
-
                         <div
                             style={{
                                 width: "497px",
@@ -37,16 +45,13 @@ export default function HeroSection() {
                                 justifyContent: "center",
                                 textAlign: "center",
                                 color: "#211A1D",
-
                                 textShadow: "0px 4px 4px rgba(0, 0, 0, 0.25)",
                                 padding: "0 24px",
                                 marginLeft: "92.5px",
-
                             }}
                         >
                             PVP
                         </div>
-
 
                         <p
                             style={{
@@ -68,18 +73,16 @@ export default function HeroSection() {
                         </p>
                     </div>
 
-
                     <div
                         style={{
-                            marginLeft: "auto",
                             width: "540px",
                             height: "484px",
                             backgroundColor: "#F1DEDE",
                             borderRadius: "50px",
                         }}
                     />
-                </div>
-            </Container>
+                </Container>
+            </div>
         </section>
     );
 }
