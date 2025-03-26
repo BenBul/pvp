@@ -1,111 +1,89 @@
 "use client";
 
 import React from "react";
-import { Container } from "react-bootstrap";
+import { AppBar, Box, Container, Toolbar, Typography, Link } from "@mui/material";
 
-const linkStyle: React.CSSProperties = {
-    textDecoration: "none",
-    color: "#211A1D",
-    cursor: "pointer",
-    display: "inline-block",
-    transition: "color 0.3s ease",
-    fontFamily: "Roboto",
-    fontSize: "32px",
-};
+const navLinks = [
+    { label: "About Us", id: "about-us" },
+    { label: "Why Us", id: "why-us" },
+    { label: "Login", href: "/login" },
+    { label: "Register", href: "#" },
+    { label: "QR", href: "/qr" },
+];
 
 export default function Navigation({ onScrollTo }: { onScrollTo: (id: string) => void }) {
     return (
-        <header
-            style={{
+        <AppBar
+            position="static"
+            elevation={0}
+            sx={{
                 backgroundColor: "#F8F0FB",
                 height: "119px",
-                display: "flex",
-                alignItems: "center",
+                justifyContent: "center",
             }}
         >
-            <Container
-                style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "0 50px",
-                    gap: "641px",
-                }}
-            >
-                <div
-                    style={{
-                        fontFamily: "Inter",
-                        fontSize: "32px",
-                        color: "#211A1D",
-                        display: "flex",
-                        alignItems: "center",
-                    }}
-                >
-                    Logo
-                </div>
-
-                <nav
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "32px",
-                        whiteSpace: "nowrap",
-                    }}
-                >
-                    <a
-                        href="#about-us"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            onScrollTo("about-us");
+            <Container maxWidth={false} sx={{ px: { xs: 2, md: 6 } }}>
+                <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
+                    <Typography
+                        sx={{
+                            fontFamily: "Inter",
+                            fontSize: "32px",
+                            color: "#211A1D",
                         }}
-                        style={linkStyle}
-                        onMouseEnter={(e) => (e.currentTarget.style.color = "#6320EE")}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = "#211A1D")}
                     >
-                        About Us
-                    </a>
+                        Logo
+                    </Typography>
 
-                    <a
-                        href="#why-us"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            onScrollTo("why-us");
+                    <Box
+                        sx={{
+                            display: "flex",
+                            gap: "32px",
+                            whiteSpace: "nowrap",
+                            alignItems: "center",
                         }}
-                        style={linkStyle}
-                        onMouseEnter={(e) => (e.currentTarget.style.color = "#6320EE")}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = "#211A1D")}
                     >
-                        Why Us
-                    </a>
-
-                    <a
-                        href="/login"
-                        style={linkStyle}
-                        onMouseEnter={(e) => (e.currentTarget.style.color = "#6320EE")}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = "#211A1D")}
-                    >
-                        Login
-                    </a>
-
-                    <a
-                        href="#"
-                        style={linkStyle}
-                        onMouseEnter={(e) => (e.currentTarget.style.color = "#6320EE")}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = "#211A1D")}
-                    >
-                        Register
-                    </a>
-
-                    <a
-                        href="/qr"
-                        style={linkStyle}
-                        onMouseEnter={(e) => (e.currentTarget.style.color = "#6320EE")}
-                        onMouseLeave={(e) => (e.currentTarget.style.color = "#211A1D")}
-                    >
-                        QR
-                    </a>
-                </nav>
+                        {navLinks.map((link) =>
+                            link.id ? (
+                                <Link
+                                    key={link.label}
+                                    component="button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        onScrollTo(link.id!);
+                                    }}
+                                    underline="none"
+                                    sx={{
+                                        fontFamily: "Roboto",
+                                        fontSize: "32px",
+                                        color: "#211A1D",
+                                        cursor: "pointer",
+                                        transition: "color 0.3s",
+                                        "&:hover": { color: "#6320EE" },
+                                    }}
+                                >
+                                    {link.label}
+                                </Link>
+                            ) : (
+                                <Link
+                                    key={link.label}
+                                    href={link.href}
+                                    underline="none"
+                                    sx={{
+                                        fontFamily: "Roboto",
+                                        fontSize: "32px",
+                                        color: "#211A1D",
+                                        cursor: "pointer",
+                                        transition: "color 0.3s",
+                                        "&:hover": { color: "#6320EE" },
+                                    }}
+                                >
+                                    {link.label}
+                                </Link>
+                            )
+                        )}
+                    </Box>
+                </Toolbar>
             </Container>
-        </header>
+        </AppBar>
     );
 }
