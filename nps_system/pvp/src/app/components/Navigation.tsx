@@ -1,7 +1,16 @@
 "use client";
 
 import React from "react";
-import { AppBar, Box, Container, Toolbar, Typography, Link } from "@mui/material";
+import {
+    AppBar,
+    Box,
+    Container,
+    Toolbar,
+    Typography,
+    Link,
+    useTheme,
+    useMediaQuery,
+} from "@mui/material";
 
 const navLinks = [
     { label: "About Us", id: "about-us" },
@@ -12,6 +21,9 @@ const navLinks = [
 ];
 
 export default function Navigation({ onScrollTo }: { onScrollTo: (id: string) => void }) {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+
     return (
         <AppBar
             position="static"
@@ -22,12 +34,23 @@ export default function Navigation({ onScrollTo }: { onScrollTo: (id: string) =>
                 justifyContent: "center",
             }}
         >
-            <Container maxWidth={false} sx={{ px: { xs: 2, md: 6 } }}>
-                <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
+            <Container
+                maxWidth={false}
+                sx={{
+                    px: { xs: 2, md: 6 },
+                }}
+            >
+                <Toolbar
+                    disableGutters
+                    sx={{
+                        justifyContent: "space-between",
+                        flexWrap: "wrap",
+                    }}
+                >
                     <Typography
                         sx={{
                             fontFamily: "Inter",
-                            fontSize: "32px",
+                            fontSize: { xs: "24px", md: "32px" },
                             color: "#211A1D",
                         }}
                     >
@@ -37,9 +60,10 @@ export default function Navigation({ onScrollTo }: { onScrollTo: (id: string) =>
                     <Box
                         sx={{
                             display: "flex",
-                            gap: "32px",
-                            whiteSpace: "nowrap",
                             alignItems: "center",
+                            gap: { xs: "16px", md: "32px" },
+                            flexWrap: isMobile ? "wrap" : "nowrap",
+                            mt: { xs: 2, md: 0 },
                         }}
                     >
                         {navLinks.map((link) =>
@@ -54,7 +78,7 @@ export default function Navigation({ onScrollTo }: { onScrollTo: (id: string) =>
                                     underline="none"
                                     sx={{
                                         fontFamily: "Roboto",
-                                        fontSize: "32px",
+                                        fontSize: { xs: "20px", md: "32px" },
                                         color: "#211A1D",
                                         cursor: "pointer",
                                         transition: "color 0.3s",
@@ -70,7 +94,7 @@ export default function Navigation({ onScrollTo }: { onScrollTo: (id: string) =>
                                     underline="none"
                                     sx={{
                                         fontFamily: "Roboto",
-                                        fontSize: "32px",
+                                        fontSize: { xs: "20px", md: "32px" },
                                         color: "#211A1D",
                                         cursor: "pointer",
                                         transition: "color 0.3s",

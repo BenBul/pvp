@@ -1,88 +1,60 @@
+"use client";
+
 import React from "react";
-import { Container } from "react-bootstrap";
+import { Box, Container, Typography } from "@mui/material";
 
 export default function HeroSection() {
     return (
-        <section style={{ marginTop: "123px", backgroundColor: "#F8F0FB" }}>
-            <div
-                style={{
+        <Box component="section" sx={{ mt: 1, bgcolor: "#F8F0FB", px: { xs: 2, md: 10 }, py: { xs: 6, md: 12 } }}>
+            <Container
+                disableGutters
+                sx={{
                     display: "flex",
-                    justifyContent: "flex-start",
-                    paddingLeft: "100px",
+                    flexDirection: { xs: "column", md: "row" },
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: { xs: 4, md: 10 },
                 }}
             >
-                <Container
-                    style={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "flex-end",
-                        justifyContent: "space-between",
-                        gap: "92px",
-                        width: "1314px",
-                        height: "484px",
-                        padding: 0,
-                    }}
-                >
-                    <div
-                        style={{
-                            width: "682px",
-                            height: "484px",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "flex-start",
+                <Box sx={{ flex: 1, textAlign: "center" }}>
+                    <Typography
+                        variant="h1"
+                        sx={{
+                            fontFamily: "Roboto",
+                            fontSize: { xs: "4rem", sm: "6rem", md: "8rem" },
+                            color: "#211A1D",
+                            textShadow: "0 4px 4px rgba(0,0,0,0.25)",
+                            mb: 3,
                         }}
                     >
-                        <div
-                            style={{
-                                width: "497px",
-                                height: "218px",
-                                fontFamily: "Roboto",
-                                fontSize: "128px",
-                                lineHeight: "120%",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                textAlign: "center",
-                                color: "#211A1D",
-                                textShadow: "0px 4px 4px rgba(0, 0, 0, 0.25)",
-                                padding: "0 24px",
-                                marginLeft: "92.5px",
-                            }}
-                        >
-                            PVP
-                        </div>
+                        PVP
+                    </Typography>
 
-                        <p
-                            style={{
-                                width: "682px",
-                                height: "286px",
-                                fontFamily: "Roboto",
-                                fontSize: "40px",
-                                lineHeight: "120%",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                textAlign: "center",
-                                color: "#211A1D",
-                                marginTop: "20px",
-                            }}
-                        >
-                            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has
-                            been
-                        </p>
-                    </div>
-
-                    <div
-                        style={{
-                            width: "540px",
-                            height: "484px",
-                            backgroundColor: "#F1DEDE",
-                            borderRadius: "50px",
+                    <Typography
+                        variant="body1"
+                        sx={{
+                            fontFamily: "Roboto",
+                            fontSize: { xs: "1.2rem", md: "2rem" },
+                            color: "#211A1D",
+                            maxWidth: 600,
+                            mx: "auto",
                         }}
-                    />
-                </Container>
-            </div>
-        </section>
+                    >
+                        Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been
+                    </Typography>
+                </Box>
+
+                <Box
+                    sx={{
+                        flex: 1,
+                        bgcolor: "#F1DEDE",
+                        borderRadius: 5,
+                        aspectRatio: "1 / 1",
+                        width: "100%",
+                        maxWidth: 500,
+                    }}
+                />
+            </Container>
+        </Box>
     );
 }
