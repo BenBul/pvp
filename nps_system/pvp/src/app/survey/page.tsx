@@ -27,6 +27,7 @@ import {
   KeyboardArrowUp as KeyboardArrowUpIcon,
   KeyboardArrowDown as KeyboardArrowDownIcon
 } from '@mui/icons-material';
+import FormDrawer from '@/components/FormDrawer';
 
 interface SurveyItem {
   id: string;
@@ -49,16 +50,45 @@ export default function SurveysPage() {
   const [surveyItems, setSurveyItems] = useState<SurveyItem[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   
   // Fetch data on component mount and when page changes
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/survey?page=${page}`);
-        const data = await response.json();
-        setSurveyItems(data.items);
-        setTotalPages(data.totalPages);
+        // const response = await fetch(`/api/survey?page=${page}`);
+        // const data = await response.json();
+        const surveyItems: SurveyItem[] = [
+          {
+            id: '1',
+            title: 'Survey 1',
+            description: 'Description of Survey 1',
+            status: 'active',
+            created_at: '2022-01-01',
+            user_id: '1',
+            category: 'Category 1',
+            distance: 10,
+            hasWarning: false,
+            positiveVotes: 10,
+            negativeVotes: 5
+          },
+          {
+            id: '2',
+            title: 'Survey 2',
+            description: 'Description of Survey 2',
+            status: 'inactive',
+            created_at: '2022-01-02',
+            user_id: '2',
+            category: 'Category 2',
+            distance: 20,
+            hasWarning: true,
+            positiveVotes: 15,
+            negativeVotes: 3
+          }
+        ]
+        setSurveyItems(surveyItems);
+        // setTotalPages(data.totalPages);
       } catch (error) {
         console.error('Error fetching survey items:', error);
         setSurveyItems([]);
@@ -142,11 +172,12 @@ export default function SurveysPage() {
                 bgcolor: '#6c5ce7', 
                 '&:hover': { bgcolor: '#5649c9' }
               }}
+              onClick={() => setIsDrawerOpen(true)}
             >
               Add form
             </Button>
           </Box>
-
+          <FormDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
           {/* Filters */}
           <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
             <Button 
