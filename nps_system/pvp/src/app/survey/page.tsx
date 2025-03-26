@@ -5,29 +5,22 @@ import { useRouter } from 'next/navigation';
 import { 
   Box, 
   Typography, 
-  Paper, 
   Button, 
   Container, 
-  List,
-  Pagination,
   Drawer,
+  List,
   ListItemButton,
   ListItemIcon,
-  ListItemText,
-  Avatar,
-  Chip,
-  IconButton
+  Pagination
 } from '@mui/material';
 import { 
   Add as AddIcon, 
   QuestionAnswer as QuestionAnswerIcon,
   BarChart as BarChartIcon,
-  Person as PersonIcon,
-  Warning as WarningIcon,
-  KeyboardArrowUp as KeyboardArrowUpIcon,
-  KeyboardArrowDown as KeyboardArrowDownIcon
+  Person as PersonIcon
 } from '@mui/icons-material';
 import FormDrawer from '@/components/FormDrawer';
+import SurveyItemsList from './surveyItem/surveyItemsList';
 
 interface SurveyItem {
   id: string;
@@ -106,13 +99,11 @@ export default function SurveysPage() {
 
   const handleSurveyClick = (surveyId: string) => {
     console.log('Clicked survey ID:', surveyId);
-    // Uncomment below to navigate to survey detail page
     // router.push(`/surveys/${surveyId}`);
   };
 
   return (
     <Box sx={{ display: 'flex' }}>
-      {/* Sidebar */}
       <Drawer
         variant="permanent"
         sx={{
@@ -151,10 +142,8 @@ export default function SurveysPage() {
         </List>
       </Drawer>
 
-      {/* Main content */}
       <Box component="main" sx={{ flexGrow: 1, overflow: 'auto' }}>
         <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-          {/* Header */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Box>
               <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
@@ -216,108 +205,11 @@ export default function SurveysPage() {
           </Box>
 
           {/* Survey Items List */}
-          {loading ? (
-            <Typography>Loading...</Typography>
-          ) : (
-            <List sx={{ bgcolor: 'background.paper' }}>
-              {surveyItems.length === 0 ? (
-                <Paper sx={{ p: 4, textAlign: 'center' }}>
-                  <Typography variant="body1">No surveys found</Typography>
-                </Paper>
-              ) : (
-                surveyItems.map((item) => (
-                  <Paper 
-                    key={item.id} 
-                    elevation={0} 
-                    sx={{ 
-                      mb: 1, 
-                      p: 2, 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'space-between',
-                      border: '1px solid #eee',
-                      borderRadius: 2,
-                      cursor: 'pointer',
-                      transition: 'background-color 0.2s',
-                      '&:hover': {
-                        backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                      }
-                    }}
-                    onClick={() => handleSurveyClick(item.id)}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Avatar sx={{ bgcolor: '#eee', color: '#666', mr: 2 }}>
-                        <BarChartIcon />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
-                          {item.title}
-                          {item.hasWarning && (
-                            <WarningIcon sx={{ ml: 1, color: 'orange', fontSize: 20 }} />
-                          )}
-                          <Chip 
-                            label={item.status} 
-                            size="small" 
-                            sx={{ 
-                              ml: 1, 
-                              bgcolor: item.status === 'active' ? '#a0e57c' : '#f0f0f0',
-                              color: item.status === 'active' ? '#326015' : '#666'
-                            }} 
-                          />
-                        </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          {item.category && (
-                            <Typography variant="caption" color="text.secondary">
-                              Category: {item.category}
-                            </Typography>
-                          )}
-                          {item.distance && (
-                            <Typography variant="caption" color="text.secondary">
-                              • {item.distance} miles away
-                            </Typography>
-                          )}
-                        </Box>
-                        <Typography variant="caption" color="text.secondary">
-                          {item.description}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <Box 
-                      sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography variant="body2" sx={{ mr: 1 }}>{item.positiveVotes}</Typography>
-                        <IconButton 
-                          size="small" 
-                          color="inherit"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            console.log('Upvote:', item.id);
-                          }}
-                        >
-                          <KeyboardArrowUpIcon />
-                        </IconButton>
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography variant="body2" sx={{ mr: 1 }}>{item.negativeVotes}</Typography>
-                        <IconButton 
-                          size="small" 
-                          color="inherit"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            console.log('Downvote:', item.id);
-                          }}
-                        >
-                          <KeyboardArrowDownIcon />
-                        </IconButton>
-                      </Box>
-                    </Box>
-                  </Paper>
-                ))
-              )}
-            </List>
-          )}
+          <SurveyItemsList 
+            items={surveyItems} 
+            loading={loading} 
+            onSurveyClick={handleSurveyClick} 
+          />
 
           {/* Pagination */}
           {surveyItems.length > 0 && (
