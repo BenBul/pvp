@@ -5,21 +5,30 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { useRouter } from 'next/navigation';
 import { Container, Card, CardContent, Typography, TextField, Button, Box, Avatar, Alert } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import { supabase } from '@/supabase/client';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loginError, setLoginError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
     const handleSubmit = async (email:string , password: string) => {
         setLoginError('');
+        setIsLoading(true);
         try {
-            const response = await fakeLoginApi(email, password);
-            if (response.success) {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password
+            });
+            if (error) {
+                setLoginError(error.message);
+                setIsLoading(false);
+                return;
+            }
+            if (data.user) {
                 router.push('/dashboard');
-            } else {
-                setLoginError('Invalid email or password');
             }
         } catch (error) {
             setLoginError('An error occurred. Please try again.');
@@ -80,16 +89,16 @@ const LoginPage = () => {
     );
 };
 
-const fakeLoginApi = async (email: string, password: string) => {
-    return new Promise<{ success: boolean }>((resolve) => {
-        setTimeout(() => {
-            if (email === 'test@example.com' && password === 'password') {
-                resolve({ success: true });
-            } else {
-                resolve({ success: false });
-            }
-        }, 1000);
-    });
-};
+// const fakeLoginApi = async (email: string, password: string) => {
+//     return new Promise<{ success: boolean }>((resolve) => {
+//         setTimeout(() => {
+//             if (email === 'test@example.com' && password === 'password') {
+//                 resolve({ success: true });
+//             } else {
+//                 resolve({ success: false });
+//             }
+//         }, 1000);
+//     });
+// };
 
 export default LoginPage;
