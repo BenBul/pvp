@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Drawer, TextField, Typography, Box, IconButton, Button } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { session, supabase } from '@/supabase/client';
+import { supabase } from '@/supabase/client';
 
 interface FormDrawerProps {
     isOpen: boolean;
