@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed": "npx ts-node seed-database.ts"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
@@ -23,10 +24,11 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@types/node": "^20",
+    "@types/node": "^20.17.27",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "prisma": "^6.4.1",
-    "typescript": "^5"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
   }
 }
