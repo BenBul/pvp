@@ -21,6 +21,7 @@ import {
 } from '@mui/icons-material';
 import FormDrawer from '@/components/FormDrawer';
 import SurveyItemsList from './surveyItem/surveyItemsList';
+import { session } from '@/supabase/client';
 
 interface SurveyItem {
   id: string;
@@ -143,11 +144,11 @@ export default function SurveysPage() {
       </Drawer>
 
       <Box component="main" sx={{ flexGrow: 1, overflow: 'auto' }}>
-        <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Container maxWidth="lg" sx={{ mt: 12, mb: 4 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Box>
               <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                Hello Vardas!
+                Hello {session?.user.email}!
               </Typography>
               <Typography variant="h5" color="text.secondary">
                 Manage your surveys and forms
@@ -168,7 +169,7 @@ export default function SurveysPage() {
           </Box>
           <FormDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
           {/* Filters */}
-          <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
+          <Box sx={{ display: 'flex', gap: 2, mb: 6, mt: 9, justifyContent: 'center' }}>
             <Button 
               variant="contained" 
               startIcon={<BarChartIcon />} 
@@ -208,23 +209,34 @@ export default function SurveysPage() {
           <SurveyItemsList 
             items={surveyItems} 
             loading={loading} 
-            onSurveyClick={handleSurveyClick} 
+            onSurveyClick={handleSurveyClick}
           />
 
           {/* Pagination */}
           {surveyItems.length > 0 && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-              <Pagination 
-                count={totalPages} 
-                page={page} 
-                onChange={handlePageChange} 
-                color="primary" 
+            <Box
+              sx={{
+                position: 'fixed',
+                bottom: 0,
+                left: 0,
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                bgcolor: 'background.paper',
+                py: 5,
+              }}
+            >
+              <Pagination
+                count={totalPages}
+                page={page}
+                onChange={handlePageChange}
+                color="primary"
                 sx={{
                   '& .MuiPaginationItem-root': {
                     '&.Mui-selected': {
                       bgcolor: '#a29bfe',
-                    }
-                  }
+                    },
+                  },
                 }}
               />
             </Box>
