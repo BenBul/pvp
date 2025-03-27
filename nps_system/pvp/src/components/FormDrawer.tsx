@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Drawer, TextField, Typography, Box, IconButton, Button } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import { session, supabase } from '@/supabase/client';
 
 interface FormDrawerProps {
     isOpen: boolean;
@@ -15,13 +16,27 @@ const FormDrawer: React.FC<FormDrawerProps> = ({ isOpen, onClose }) => {
 
     const handleSubmit = async () => {
         try {
-            const response = await fakeApiCall(name, description);
-            setApiResponse(response.message);
-            onClose(); // Close the drawer on success
+            const { data, error } = await supabase.from('surveys')
+                .insert({
+                    title: name,
+                    description: description,
+                    status: 'active',
+                })
+            setApiResponse(data ? 'Form submitted successfully!' : error?.message || 'An error occurred.');
+            onClose(); 
         } catch (error) {
             setApiResponse('An error occurred. Please try again.');
         }
     };
+
+    useEffect(() => {
+        if (isOpen) {
+            setName('');
+            setDescription('');
+            setApiResponse('');
+        }
+    }
+    , [isOpen]);
 
     return (
         <Drawer anchor="right" open={isOpen} onClose={onClose} variant="persistent">
@@ -29,6 +44,8 @@ const FormDrawer: React.FC<FormDrawerProps> = ({ isOpen, onClose }) => {
                 sx={{ width: { xs: 300, sm: 300, md: 450, lg: 650 }, padding: 3 }}
                 role="presentation"
             >
+                <Typography>
+                </Typography>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                     <Typography variant="h6" gutterBottom className="text-center text-h2 mt-1">
                         Add a New Question
@@ -66,19 +83,6 @@ const FormDrawer: React.FC<FormDrawerProps> = ({ isOpen, onClose }) => {
             </Box>
         </Drawer>
     );
-};
-
-// Mock API call function
-const fakeApiCall = async (name: string, description: string) => {
-    return new Promise<{ message: string }>((resolve, reject) => {
-        setTimeout(() => {
-            if (name && description) {
-                resolve({ message: 'Form submitted successfully!' });
-            } else {
-                reject(new Error('Invalid input'));
-            }
-        }, 1000);
-    });
 };
 
 export default FormDrawer;
