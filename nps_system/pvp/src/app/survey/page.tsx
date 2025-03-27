@@ -21,6 +21,7 @@ import {
 } from '@mui/icons-material';
 import FormDrawer from '@/components/FormDrawer';
 import SurveyItemsList from './surveyItem/surveyItemsList';
+import { supabase } from '@/supabase/client';
 import { session } from '@/supabase/client';
 
 interface SurveyItem {
@@ -45,44 +46,50 @@ export default function SurveysPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const pageSize = 10;
   
   // Fetch data on component mount and when page changes
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // const response = await fetch(`/api/survey?page=${page}`);
-        // const data = await response.json();
-        const surveyItems: SurveyItem[] = [
-          {
-            id: '1',
-            title: 'Survey 1',
-            description: 'Description of Survey 1',
-            status: 'active',
-            created_at: '2022-01-01',
-            user_id: '1',
-            category: 'Category 1',
-            distance: 10,
-            hasWarning: false,
-            positiveVotes: 10,
-            negativeVotes: 5
-          },
-          {
-            id: '2',
-            title: 'Survey 2',
-            description: 'Description of Survey 2',
-            status: 'inactive',
-            created_at: '2022-01-02',
-            user_id: '2',
-            category: 'Category 2',
-            distance: 20,
-            hasWarning: true,
-            positiveVotes: 15,
-            negativeVotes: 3
-          }
-        ]
+        
+        // Calculate the range for pagination
+        const from = (page - 1) * pageSize;
+        const to = from + pageSize - 1;
+
+        // Fetch total count of surveys
+        const { count: totalItems, error: countError } = await supabase
+          .from('surveys')
+          .select('*', { count: 'exact' });
+
+        if (countError) {
+          throw countError;
+        }
+
+        // Fetch paginated survey items
+        const { data: rawSurveyItems, error } = await supabase
+          .from('surveys')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .range(from, to);
+
+        if (error) {
+          throw error;
+        }
+
+        // Add vote counts and transform the data
+        const surveyItems: SurveyItem[] = (rawSurveyItems || []).map(item => ({
+          ...item,
+          positiveVotes: Math.floor(Math.random() * 100), // Replace with actual vote data
+          negativeVotes: Math.floor(Math.random() * 100), // Replace with actual vote data
+          createdAt: item.created_at,
+          hasWarning: Math.random() > 0.7, // Random warning for demonstration
+          distance: Math.floor(Math.random() * 50) // Random distance for demonstration
+        }));
+
         setSurveyItems(surveyItems);
-        // setTotalPages(data.totalPages);
+        setTotalPages(Math.ceil((totalItems || 0) / pageSize));
       } catch (error) {
         console.error('Error fetching survey items:', error);
         setSurveyItems([]);
@@ -99,8 +106,7 @@ export default function SurveysPage() {
   };
 
   const handleSurveyClick = (surveyId: string) => {
-    console.log('Clicked survey ID:', surveyId);
-    // router.push(`/surveys/${surveyId}`);
+    router.push(`/surveys/${surveyId}`);
   };
 
   return (
