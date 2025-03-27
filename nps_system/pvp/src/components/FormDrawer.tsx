@@ -7,9 +7,10 @@ import { supabase } from '@/supabase/client';
 interface FormDrawerProps {
     isOpen: boolean;
     onClose: () => void;
+    refreshItems: () => void;
 }
 
-const FormDrawer: React.FC<FormDrawerProps> = ({ isOpen, onClose }) => {
+const FormDrawer: React.FC<FormDrawerProps> = ({ isOpen, onClose, refreshItems }) => {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [apiResponse, setApiResponse] = useState('');
@@ -23,6 +24,7 @@ const FormDrawer: React.FC<FormDrawerProps> = ({ isOpen, onClose }) => {
                     status: 'active',
                 })
             setApiResponse(data ? 'Form submitted successfully!' : error?.message || 'An error occurred.');
+            refreshItems();
             onClose(); 
         } catch (error) {
             setApiResponse('An error occurred. Please try again.');

@@ -46,6 +46,7 @@ export default function SurveysPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [refresh, setRefresh] = useState(false);
   const pageSize = 10;
   
   // Fetch data on component mount and when page changes
@@ -95,11 +96,12 @@ export default function SurveysPage() {
         setSurveyItems([]);
       } finally {
         setLoading(false);
+        setRefresh(false);
       }
     };
     
     fetchData();
-  }, [page]);
+  }, [page, refresh]);
   
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
@@ -117,7 +119,7 @@ export default function SurveysPage() {
           width: 60,
           flexShrink: 0,
           '& .MuiDrawer-paper': {
-            width: 60,
+            width: 100,
             boxSizing: 'border-box',
             display: 'flex',
             flexDirection: 'column',
@@ -127,24 +129,33 @@ export default function SurveysPage() {
           },
         }}
       >
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: 4, justifyContent: 'center' }}>
           <Typography variant="h6">LOGO</Typography>
         </Box>
         <List>
-          <ListItemButton sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <ListItemButton sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
             <ListItemIcon sx={{ minWidth: 'auto' }}>
               <QuestionAnswerIcon />
             </ListItemIcon>
+            <Typography variant="caption" sx={{ mt: 1 }}>
+              Questions
+            </Typography>
           </ListItemButton>
-          <ListItemButton sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <ListItemButton sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
             <ListItemIcon sx={{ minWidth: 'auto' }}>
               <BarChartIcon />
             </ListItemIcon>
+            <Typography variant="caption" sx={{ mt: 1 }}>
+              Statistics
+            </Typography>
           </ListItemButton>
-          <ListItemButton sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <ListItemButton sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
             <ListItemIcon sx={{ minWidth: 'auto' }}>
               <PersonIcon />
             </ListItemIcon>
+            <Typography variant="caption" sx={{ mt: 1 }}>
+              Profile
+            </Typography>
           </ListItemButton>
         </List>
       </Drawer>
@@ -173,7 +184,7 @@ export default function SurveysPage() {
               Add form
             </Button>
           </Box>
-          <FormDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
+          <FormDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} refreshItems={() => setRefresh(true)} />
           {/* Filters */}
           <Box sx={{ display: 'flex', gap: 2, mb: 6, mt: 9, justifyContent: 'center' }}>
             <Button 

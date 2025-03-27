@@ -28,7 +28,7 @@ const LoginPage = () => {
                 return;
             }
             if (data.user) {
-                router.push('/dashboard');
+                router.push('/survey');
             }
         } catch (error) {
             setLoginError('An error occurred. Please try again.');
@@ -88,17 +88,5 @@ const LoginPage = () => {
         </Container>
     );
 };
-
-// const fakeLoginApi = async (email: string, password: string) => {
-//     return new Promise<{ success: boolean }>((resolve) => {
-//         setTimeout(() => {
-//             if (email === 'test@example.com' && password === 'password') {
-//                 resolve({ success: true });
-//             } else {
-//                 resolve({ success: false });
-//             }
-//         }, 1000);
-//     });
-// };
 
 export default LoginPage;

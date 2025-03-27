@@ -61,10 +61,11 @@ export default function SurveyItemsList({
           sx={{ 
             mb: 1, 
             p: 2, 
+            
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'space-between',
-            border: '1px solid #eee',
+            border: '1px solid rgb(218, 218, 218)',
             borderRadius: 2,
             cursor: 'pointer',
             transition: 'background-color 0.2s',
