@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { Drawer, TextField, Typography, Box, IconButton, Button } from '@mui/material';
+import {
+    Drawer,
+    TextField,
+    Typography,
+    Box,
+    IconButton,
+    Button,
+    MenuItem,
+    Alert
+} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -9,74 +18,89 @@ interface FormDrawerProps {
 }
 
 const FormDrawer: React.FC<FormDrawerProps> = ({ isOpen, onClose }) => {
-    const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
-    const [apiResponse, setApiResponse] = useState('');
+    const [questionText, setQuestionText] = useState('');
+    const [questionType, setQuestionType] = useState('text');
+    const [successMessage, setSuccessMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
 
     const handleSubmit = async () => {
+        if (!questionText || !questionType) {
+            setErrorMessage('All fields must be filled out.');
+            return;
+        }
+
         try {
-            const response = await fakeApiCall(name, description);
-            setApiResponse(response.message);
-            onClose(); // Close the drawer on success
+            const qrCode = `QR-${Math.random().toString(36).substring(2, 8)}`;
+            const response = await fakeApiCall(questionText, questionType, qrCode);
+            setSuccessMessage(response.message);
+            setErrorMessage('');
+            setTimeout(() => {
+                setSuccessMessage('');
+                onClose();
+                setQuestionText('');
+                setQuestionType('text');
+            }, 2500);
         } catch (error) {
-            setApiResponse('An error occurred. Please try again.');
+            setSuccessMessage('');
+            setErrorMessage('An error occurred. Please try again.');
         }
     };
 
     return (
         <Drawer anchor="right" open={isOpen} onClose={onClose} variant="persistent">
             <Box
-                sx={{ width: { xs: 300, sm: 300, md: 450, lg: 650 }, padding: 3 }}
+                sx={{ width: { xs: 300, sm: 300, md: 450 }, padding: 3 }}
                 role="presentation"
             >
                 <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Typography variant="h6" gutterBottom className="text-center text-h2 mt-1">
+                    <Typography variant="h6">
                         Add a New Question
                     </Typography>
-                    <IconButton onClick={onClose} color="primary" size="large">
+                    <IconButton onClick={onClose} color="primary">
                         <CloseIcon fontSize="large" />
                     </IconButton>
                 </Box>
-                <Box display="flex" justifyContent="center" alignItems="center" flexDirection="column" mt={5} gap={3}>
+
+                <Box display="flex" flexDirection="column" mt={4} gap={3}>
                     <TextField
-                        label="Name"
+                        label="Question Text"
                         variant="outlined"
-                        margin="normal"
-                        fullWidth
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        sx={{ maxWidth: 450 }}
-                    />
-                    <TextField
-                        label="Description"
-                        variant="outlined"
-                        margin="normal"
                         fullWidth
                         multiline
                         rows={5}
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        sx={{ maxWidth: 450 }}
+                        value={questionText}
+                        onChange={(e) => setQuestionText(e.target.value)}
                     />
+
+                    <TextField
+                        label="Question Type"
+                        select
+                        fullWidth
+                        value={questionType}
+                        onChange={(e) => setQuestionType(e.target.value)}
+                    >
+                        <MenuItem value="text">Text</MenuItem>
+                        <MenuItem value="multiple-choice">Multiple Choice</MenuItem>
+                        <MenuItem value="boolean">Yes/No</MenuItem>
+                    </TextField>
+
                     <Button onClick={handleSubmit} variant="contained" color="primary">
                         Submit
                     </Button>
-                    {apiResponse && <Typography variant="body1" color="textSecondary">{apiResponse}</Typography>}
+
+                    {successMessage && <Alert severity="success">{successMessage}</Alert>}
+                    {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
                 </Box>
             </Box>
         </Drawer>
     );
 };
 
-// Mock API call function
-const fakeApiCall = async (name: string, description: string) => {
-    return new Promise<{ message: string }>((resolve, reject) => {
+const fakeApiCall = async (text: string, type: string, qrCode: string) => {
+    return new Promise<{ message: string }>((resolve) => {
         setTimeout(() => {
-            if (name && description) {
-                resolve({ message: 'Form submitted successfully!' });
-            } else {
-                reject(new Error('Invalid input'));
-            }
+            console.log('Question saved:', { text, type, qrCode });
+            resolve({ message: 'Question added successfully!' });
         }, 1000);
     });
 };
