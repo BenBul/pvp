@@ -16,7 +16,7 @@ const navLinks = [
     { label: "About Us", id: "about-us" },
     { label: "Why Us", id: "why-us" },
     { label: "Login", href: "/login" },
-    { label: "Register", href: "#" },
+    { label: "Register", href: "/register" },
     { label: "QR", href: "/qr" },
 ];
 

@@ -24,8 +24,6 @@ export default function Home() {
             <WhyUsSection />
             <CallToAction />
             <Footer />
-
-
         </main>
     );
 }
