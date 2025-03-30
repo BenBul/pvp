@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Container, Card, CardContent, Typography, TextField, Button, Box, Avatar, Alert } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { supabase } from '@/supabase/client';
+import CircularProgress from "@mui/material/CircularProgress";
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
@@ -80,7 +81,7 @@ const LoginPage = () => {
                             className='mb-5'
                         />
                         <Button onClick={() => handleSubmit(email, password)} sx={{ borderRadius: '15px'}} fullWidth variant="contained" color="secondary" disabled={!isFormValid}>
-                            Sign In
+                            {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Sign In' }
                         </Button>
                     </Box>
                 </CardContent>

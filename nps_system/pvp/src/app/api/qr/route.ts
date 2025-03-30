@@ -3,12 +3,12 @@ import axios from 'axios';
 
 export async function POST(request: Request) {
     try {
-        const { color } = await request.json();
+        const { color, URL } = await request.json();
 
         const url = 'https://api.qrcode-monkey.com//qr/custom';
 
         const payload = {
-            data: "https://www.qrcode-monkey.com",
+            data: URL,
             config: {
                 body: "square",
                 eye: "frame0",

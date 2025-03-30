@@ -7,10 +7,10 @@ import Link from "next/link";
 export default function Page() {
     const [imageUrl, setImageUrl] = useState("");
     const [error, setError] = useState("");
-    const [color, setColor] = useState("#000001"); // Single color state
+    const [color, setColor] = useState("#000000");
 
     const handleColorChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setColor(event.target.value); // Update the single color state
+        setColor(event.target.value);
     };
 
     const generateQRCode = async () => {
@@ -20,12 +20,8 @@ export default function Page() {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ color }), // Send the single color to the API
+                body: JSON.stringify({ color }),
             });
-
-            if (!response.ok) {
-                throw new Error(`Failed to fetch QR code: ${response.statusText}`);
-            }
 
             const data = await response.json();
             setImageUrl(data.url);
