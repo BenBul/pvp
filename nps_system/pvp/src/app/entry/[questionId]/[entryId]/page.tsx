@@ -10,7 +10,7 @@ export default function EntryPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isPositive, setIsPositive] = useState(false);
     const [success, setSuccess] = useState(false);
-    const [countdown, setCountdown] = useState(10);
+    const [countdown, setCountdown] = useState(5);
     const [cancelled, setCancelled] = useState(false);
     const timerRef = useRef<number>(0);
     const submittedRef = useRef(false);
