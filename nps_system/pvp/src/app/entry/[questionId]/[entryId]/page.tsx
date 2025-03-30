@@ -13,10 +13,12 @@ export default function EntryPage() {
     useEffect(() => {
         if(isLoading)
             handleSubmitAnswer();
-    })
+    }, [isLoading]) // Added dependency array
+
     const handleSubmitAnswer = async () => {
         setIsLoading(false);
 
+        // First get the entry value
         const { data, error } = await supabase
             .from('entries')
             .select('value')
@@ -25,31 +27,31 @@ export default function EntryPage() {
 
         if (error) throw error;
 
-        if (data) {
-            if(data.value === "positive")
-                setIsPositive(true);
-            else setIsPositive(false);
-        }
+        // Determine the positivity from the data
+        const entryIsPositive = data?.value === "positive";
 
+        // Update state
+        setIsPositive(entryIsPositive);
+
+        // Now use the correct value directly in the insert
         const { error: answerError } = await supabase
             .from('answers')
             .insert({
                 question_id: questionId,
-                ispositive: isPositive,
+                ispositive: entryIsPositive, // Use the local variable, not the state
                 entry: entryId,
             });
 
         if (answerError) throw answerError;
         setSuccess(true);
-        return;
     }
 
     return (
         <div>
-        <h1 className="text-3xl font-bold text-gray-800">
-            Question ID: <span className="text-blue-600">{questionId}</span>
-            Entry ID: <span className="text-blue-600">{entryId}</span>
-        </h1>
+            <h1 className="text-3xl font-bold text-gray-800">
+                Question ID: <span className="text-blue-600">{questionId}</span>
+                Entry ID: <span className="text-blue-600">{entryId}</span>
+            </h1>
             {success && (
                 <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
                     <strong className="font-bold">Success!</strong>
