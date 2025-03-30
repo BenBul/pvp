@@ -1,66 +1,163 @@
 "use client"
 
 import { useParams } from 'next/navigation'
-import {useEffect, useState} from "react";
-import {supabase} from "@/supabase/client";
+import { useEffect, useState, useRef } from "react";
+import { supabase } from "@/supabase/client";
+import { Box, Typography, Button, Alert, Paper, CircularProgress } from '@mui/material';
 
 export default function EntryPage() {
-    const { questionId, entryId } = useParams()
+    const { questionId, entryId } = useParams();
     const [isLoading, setIsLoading] = useState(true);
     const [isPositive, setIsPositive] = useState(false);
     const [success, setSuccess] = useState(false);
+    const [countdown, setCountdown] = useState(10);
+    const [cancelled, setCancelled] = useState(false);
+    const timerRef = useRef<number>(0);
+    const submittedRef = useRef(false);
 
     useEffect(() => {
-        if(isLoading)
-            handleSubmitAnswer();
-    }, [isLoading]) // Added dependency array
+        const fetchEntryData = async () => {
+            const { data, error } = await supabase
+                .from('entries')
+                .select('value')
+                .eq('id', entryId)
+                .single();
 
-    const handleSubmitAnswer = async () => {
-        setIsLoading(false);
+            if (error) throw error;
+            setIsPositive(data?.value === "positive");
+            setIsLoading(false);
+        };
+        fetchEntryData();
+    }, [entryId]);
 
-        // First get the entry value
-        const { data, error } = await supabase
-            .from('entries')
-            .select('value')
-            .eq('id', entryId)
-            .single();
+    useEffect(() => {
+        if (isLoading || success || cancelled) return;
 
-        if (error) throw error;
-
-        // Determine the positivity from the data
-        const entryIsPositive = data?.value === "positive";
-
-        // Update state
-        setIsPositive(entryIsPositive);
-
-        // Now use the correct value directly in the insert
-        const { error: answerError } = await supabase
-            .from('answers')
-            .insert({
-                question_id: questionId,
-                ispositive: entryIsPositive, // Use the local variable, not the state
-                entry: entryId,
+        timerRef.current = window.setInterval(() => {
+            setCountdown((prev) => {
+                if (prev <= 1) {
+                    if (timerRef.current) {
+                        window.clearInterval(timerRef.current);
+                    }
+                    if (!cancelled && !submittedRef.current) {
+                        handleAutoSubmit();
+                    }
+                    return 0;
+                }
+                return prev - 1;
             });
+        }, 1000);
 
-        if (answerError) throw answerError;
-        setSuccess(true);
+        return () => {
+            if (timerRef.current) {
+                window.clearInterval(timerRef.current);
+            }
+        };
+    }, [isLoading, success, cancelled]);
+
+    const handleAutoSubmit = async () => {
+        if (success || cancelled || submittedRef.current) return;
+
+        submittedRef.current = true;
+        try {
+            const { error } = await supabase
+                .from('answers')
+                .insert({
+                    question_id: questionId,
+                    ispositive: isPositive,
+                    entry: entryId,
+                });
+
+            if (error) throw error;
+            setSuccess(true);
+        } catch (error) {
+            submittedRef.current = false;
+            console.error("Submission error:", error);
+        }
+    };
+
+    const handleCancel = () => {
+        if (timerRef.current) {
+            window.clearInterval(timerRef.current);
+        }
+        setCancelled(true);
+    };
+
+    const statusColor = isPositive ? 'success' : 'error';
+    const statusText = isPositive ? 'POSITIVE REVIEW' : 'NEGATIVE REVIEW';
+
+    if (isLoading) {
+        return (
+            <Box sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '100vh'
+            }}>
+                <CircularProgress size={80} />
+            </Box>
+        );
     }
 
     return (
-        <div>
-            <h1 className="text-3xl font-bold text-gray-800">
-                Question ID: <span className="text-blue-600">{questionId}</span>
-                Entry ID: <span className="text-blue-600">{entryId}</span>
-            </h1>
-            {success && (
-                <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
-                    <strong className="font-bold">Success!</strong>
-                    <span className="block sm:inline"> Answer submitted successfully.</span>
-                    <p className="mt-2">
-                        Status: {isPositive ? "Positive" : "Negative"}
-                    </p>
-                </div>
-            )}
-        </div>
-    )
+        <Box sx={{ p: 4, maxWidth: 600, margin: '0 auto' }}>
+            <Paper elevation={3} sx={{ p: 4, textAlign: 'center' }}>
+                {!success && !cancelled ? (
+                    <>
+                        <Typography variant="h5" gutterBottom>
+                            You're submitting a:
+                        </Typography>
+                        <Typography
+                            variant="h4"
+                            color={statusColor}
+                            sx={{
+                                fontWeight: 'bold',
+                                mb: 3,
+                                textTransform: 'uppercase'
+                            }}
+                        >
+                            {statusText}
+                        </Typography>
+
+                        <Typography variant="h6" gutterBottom>
+                            Time remaining: {countdown} seconds
+                        </Typography>
+
+                        <Button
+                            variant="contained"
+                            color="error"
+                            onClick={handleCancel}
+                            sx={{ mt: 3 }}
+                            size="large"
+                        >
+                            Cancel Submission
+                        </Button>
+                    </>
+                ) : cancelled ? (
+                    <Alert severity="warning" sx={{ mb: 3 }}>
+                        Submission cancelled.
+                    </Alert>
+                ) : (
+                    <Box>
+                        <Alert severity="success" sx={{ mb: 3 }}>
+                            Answer submitted successfully!
+                        </Alert>
+                        <Typography variant="h5" gutterBottom>
+                            Your submission was:
+                        </Typography>
+                        <Typography
+                            variant="h4"
+                            color={statusColor}
+                            sx={{
+                                fontWeight: 'bold',
+                                textTransform: 'uppercase'
+                            }}
+                        >
+                            {statusText}
+                        </Typography>
+                    </Box>
+                )}
+            </Paper>
+        </Box>
+    );
 }
