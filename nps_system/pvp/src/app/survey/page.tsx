@@ -108,7 +108,7 @@ export default function SurveysPage() {
   };
 
   const handleSurveyClick = (surveyId: string) => {
-    router.push(`/surveys/${surveyId}`);
+    router.push(`/survey/${surveyId}`);
   };
 
   return (
