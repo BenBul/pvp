@@ -1,6 +1,8 @@
+// app/layout.tsx
 import { ReactNode } from "react";
 import { ThemeProvider } from "./theme";
 import CssBaseline from "@mui/material/CssBaseline";
+import HeaderManager from "./components/HeaderManager";
 
 export const metadata = {
     title: "PVP NPS APP",
@@ -13,7 +15,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <body>
                 <ThemeProvider>
                     <CssBaseline />
-                    {children}
+                    <HeaderManager />
+                    <main>
+                        {children}
+                    </main>
                 </ThemeProvider>
             </body>
         </html>
