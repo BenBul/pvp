@@ -76,6 +76,14 @@ export default function EntryPage() {
         }
     };
 
+    useEffect(() => {
+        if (!success || !cancelled) window.addEventListener('beforeunload', handleAutoSubmit);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleAutoSubmit);
+        };
+    },[success, cancelled, handleAutoSubmit]);
+
     const handleCancel = () => {
         if (timerRef.current) {
             window.clearInterval(timerRef.current);
