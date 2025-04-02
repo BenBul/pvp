@@ -21,6 +21,7 @@ import {
 } from '@mui/icons-material';
 import FormDrawer from '@/components/FormDrawer';
 import SurveyItemsList from './surveyItem/surveyItemsList';
+import LogoutButton from '@/app/components/LogoutButton';
 import { supabase } from '@/supabase/client';
 import { session } from '@/supabase/client';
 
@@ -151,6 +152,7 @@ export default function SurveysPage() {
               );
             })}
           </List>
+            <LogoutButton />
         </Drawer>
 
         <Box component="main" sx={{ flexGrow: 1, overflow: 'auto' }}>
