@@ -25,7 +25,7 @@ export default function Page() {
                 },
                 body: JSON.stringify({
                     color: "#008000",
-                    URL: `localhost:3000/entry/${questionId}/${positiveEntryId}`
+                    URL: `${window.location.protocol}/${window.location.host}/entry/${questionId}/${positiveEntryId}`
                 }),
             });
 
@@ -36,7 +36,7 @@ export default function Page() {
                 },
                 body: JSON.stringify({
                     color: "#ff0000",
-                    URL: `localhost:3000/entry/${questionId}/${negativeEntryId}`
+                    URL: `${window.location.protocol}/${window.location.host}/entry/${questionId}/${negativeEntryId}`
                 }),
             });
 
