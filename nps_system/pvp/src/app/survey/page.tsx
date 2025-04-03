@@ -2,25 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  Box, 
-  Typography, 
-  Button, 
-  Container, 
+import {
+  Box,
+  Typography,
+  Button,
+  Container,
   Drawer,
   List,
   ListItemButton,
   ListItemIcon,
   Pagination
 } from '@mui/material';
-import { 
-  Add as AddIcon, 
+import {
+  Add as AddIcon,
   QuestionAnswer as QuestionAnswerIcon,
   BarChart as BarChartIcon,
   Person as PersonIcon
 } from '@mui/icons-material';
-import FormDrawer from '@/components/FormDrawer';
-import SurveyItemsList from './surveyItem/surveyItemsList';
+import FormDrawer from '@/app/components/dashboard/surveys/FormDrawer';
+import SurveyItemsList from '@/app/components/dashboard/surveys/SurveyItemList';
 import { supabase } from '@/supabase/client';
 import { session } from '@/supabase/client';
 
@@ -48,13 +48,13 @@ export default function SurveysPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [refresh, setRefresh] = useState(false);
   const pageSize = 10;
-  
+
   // Fetch data on component mount and when page changes
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // Calculate the range for pagination
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
@@ -99,10 +99,10 @@ export default function SurveysPage() {
         setRefresh(false);
       }
     };
-    
+
     fetchData();
   }, [page, refresh]);
-  
+
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
   };
@@ -165,56 +165,52 @@ export default function SurveysPage() {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Box>
               <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                Hello {session?.user.email}!
+                Hello {session?.user.email || ''}!
               </Typography>
               <Typography variant="h5" color="text.secondary">
                 Manage your surveys and forms
               </Typography>
             </Box>
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               startIcon={<AddIcon />}
-              sx={{ 
-                borderRadius: 28, 
-                bgcolor: '#6c5ce7', 
-                '&:hover': { bgcolor: '#5649c9' }
-              }}
+              sx={{ borderRadius: 28, bgcolor: 'main' }}
               onClick={() => setIsDrawerOpen(true)}
             >
               Add form
             </Button>
           </Box>
           <FormDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} refreshItems={() => setRefresh(true)} />
-          {/* Filters */}
+
           <Box sx={{ display: 'flex', gap: 2, mb: 6, mt: 9, justifyContent: 'center' }}>
-            <Button 
-              variant="contained" 
-              startIcon={<BarChartIcon />} 
-              sx={{ 
-                borderRadius: 28, 
-                bgcolor: '#a29bfe', 
+            <Button
+              variant="contained"
+              startIcon={<BarChartIcon />}
+              sx={{
+                borderRadius: 28,
+                bgcolor: '#a29bfe',
                 '&:hover': { bgcolor: '#8c7ae6' }
               }}
             >
               Rate
             </Button>
-            <Button 
-              variant="contained" 
-              startIcon={<BarChartIcon />} 
-              sx={{ 
-                borderRadius: 28, 
-                bgcolor: '#a29bfe', 
+            <Button
+              variant="contained"
+              startIcon={<BarChartIcon />}
+              sx={{
+                borderRadius: 28,
+                bgcolor: '#a29bfe',
                 '&:hover': { bgcolor: '#8c7ae6' }
               }}
             >
               Positive feedback
             </Button>
-            <Button 
-              variant="outlined" 
-              sx={{ 
-                borderRadius: 28, 
-                color: '#6c5ce7', 
-                borderColor: '#6c5ce7', 
+            <Button
+              variant="outlined"
+              sx={{
+                borderRadius: 28,
+                color: '#6c5ce7',
+                borderColor: '#6c5ce7',
                 '&:hover': { borderColor: '#5649c9' }
               }}
             >
@@ -222,24 +218,21 @@ export default function SurveysPage() {
             </Button>
           </Box>
 
-          {/* Survey Items List */}
-          <SurveyItemsList 
-            items={surveyItems} 
-            loading={loading} 
+          <SurveyItemsList
+            items={surveyItems}
+            loading={loading}
             onSurveyClick={handleSurveyClick}
           />
 
-          {/* Pagination */}
           {surveyItems.length > 0 && (
             <Box
               sx={{
-                position: 'fixed',
                 bottom: 0,
                 left: 0,
                 width: '100%',
                 display: 'flex',
                 justifyContent: 'center',
-                bgcolor: 'background.paper',
+                bgcolor: 'main',
                 py: 5,
               }}
             >
