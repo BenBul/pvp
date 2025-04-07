@@ -54,40 +54,66 @@ export default function SurveysPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-
-        // Calculate the range for pagination
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
 
-        // Fetch total count of surveys
-        const { count: totalItems, error: countError } = await supabase
-          .from('surveys')
-          .select('*', { count: 'exact' });
+        console.log('Fetching surveys...');
+        const { data: rawSurveyItems, error: surveysError, count: totalItems } = await supabase
+            .from('surveys')
+            .select('*', { count: 'exact' })
+            .order('created_at', { ascending: false })
+            .range(from, to);
 
-        if (countError) {
-          throw countError;
-        }
+        if (surveysError) throw surveysError;
+        console.log('Fetched surveys:', rawSurveyItems);
 
-        // Fetch paginated survey items
-        const { data: rawSurveyItems, error } = await supabase
-          .from('surveys')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .range(from, to);
+        console.log('Fetching answers with questions...');
+        const { data: answersData, error: answersError } = await supabase
+            .from('answers')
+            .select(`
+    ispositive,
+    question_id,
+    questions:question_id (
+      survey_id
+    )
+  `);
+        const { data: answersDebug } = await supabase.from('answers').select('*');
+        console.log('Debug raw answers:', answersDebug);
 
-        if (error) {
-          throw error;
-        }
 
-        // Add vote counts and transform the data
-        const surveyItems: SurveyItem[] = (rawSurveyItems || []).map(item => ({
-          ...item,
-          positiveVotes: Math.floor(Math.random() * 100), // Replace with actual vote data
-          negativeVotes: Math.floor(Math.random() * 100), // Replace with actual vote data
-          createdAt: item.created_at,
-          hasWarning: Math.random() > 0.7, // Random warning for demonstration
-          distance: Math.floor(Math.random() * 50) // Random distance for demonstration
-        }));
+        if (answersError) throw answersError;
+        console.log('Fetched answers:', answersData);
+
+        const voteCounts: Record<string, { positive: number; negative: number }> = {};
+
+        answersData?.forEach(answer => {
+          const surveyId = answer.questions?.survey_id;
+          if (!surveyId) return;
+
+          if (!voteCounts[surveyId]) {
+            voteCounts[surveyId] = { positive: 0, negative: 0 };
+          }
+
+          if (answer.ispositive) {
+            voteCounts[surveyId].positive += 1;
+          } else {
+            voteCounts[surveyId].negative += 1;
+          }
+        });
+
+        console.log('Vote counts per survey:', voteCounts);
+
+        const surveyItems: SurveyItem[] = (rawSurveyItems || []).map(item => {
+          const votes = voteCounts[item.id] || { positive: 0, negative: 0 };
+          return {
+            ...item,
+            positiveVotes: votes.positive,
+            negativeVotes: votes.negative,
+            createdAt: item.created_at,
+            hasWarning: false,
+            distance: 0
+          };
+        });
 
         setSurveyItems(surveyItems);
         setTotalPages(Math.ceil((totalItems || 0) / pageSize));
@@ -99,6 +125,7 @@ export default function SurveysPage() {
         setRefresh(false);
       }
     };
+
 
     fetchData();
   }, [page, refresh]);
