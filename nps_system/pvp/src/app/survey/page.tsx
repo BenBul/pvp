@@ -49,7 +49,6 @@ export default function SurveysPage() {
   const [refresh, setRefresh] = useState(false);
   const pageSize = 10;
 
-  // Fetch data on component mount and when page changes
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -57,7 +56,6 @@ export default function SurveysPage() {
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
 
-        console.log('Fetching surveys...');
         const { data: rawSurveyItems, error: surveysError, count: totalItems } = await supabase
             .from('surveys')
             .select('*', { count: 'exact' })
@@ -65,24 +63,18 @@ export default function SurveysPage() {
             .range(from, to);
 
         if (surveysError) throw surveysError;
-        console.log('Fetched surveys:', rawSurveyItems);
 
-        console.log('Fetching answers with questions...');
         const { data: answersData, error: answersError } = await supabase
             .from('answers')
             .select(`
-    ispositive,
-    question_id,
-    questions:question_id (
-      survey_id
-    )
-  `);
-        const { data: answersDebug } = await supabase.from('answers').select('*');
-        console.log('Debug raw answers:', answersDebug);
-
+            ispositive,
+            question_id,
+            questions:question_id (
+              survey_id
+            )
+          `);
 
         if (answersError) throw answersError;
-        console.log('Fetched answers:', answersData);
 
         const voteCounts: Record<string, { positive: number; negative: number }> = {};
 
@@ -101,8 +93,6 @@ export default function SurveysPage() {
           }
         });
 
-        console.log('Vote counts per survey:', voteCounts);
-
         const surveyItems: SurveyItem[] = (rawSurveyItems || []).map(item => {
           const votes = voteCounts[item.id] || { positive: 0, negative: 0 };
           return {
@@ -118,14 +108,12 @@ export default function SurveysPage() {
         setSurveyItems(surveyItems);
         setTotalPages(Math.ceil((totalItems || 0) / pageSize));
       } catch (error) {
-        console.error('Error fetching survey items:', error);
         setSurveyItems([]);
       } finally {
         setLoading(false);
         setRefresh(false);
       }
     };
-
 
     fetchData();
   }, [page, refresh]);
@@ -139,147 +127,148 @@ export default function SurveysPage() {
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      <Drawer
-        variant="permanent"
-        sx={{
-          width: 60,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
-            width: 100,
-            boxSizing: 'border-box',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            py: 2,
-            bgcolor: '#f8f8f8'
-          },
-        }}
-      >
-        <Box sx={{ mb: 4, justifyContent: 'center' }}>
-          <Typography variant="h6">LOGO</Typography>
-        </Box>
-        <List>
-          <ListItemButton sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
-            <ListItemIcon sx={{ minWidth: 'auto' }}>
-              <QuestionAnswerIcon />
-            </ListItemIcon>
-            <Typography variant="caption" sx={{ mt: 1 }}>
-              Questions
-            </Typography>
-          </ListItemButton>
-          <ListItemButton sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
-            <ListItemIcon sx={{ minWidth: 'auto' }}>
-              <BarChartIcon />
-            </ListItemIcon>
-            <Typography variant="caption" sx={{ mt: 1 }}>
-              Statistics
-            </Typography>
-          </ListItemButton>
-          <ListItemButton sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
-            <ListItemIcon sx={{ minWidth: 'auto' }}>
-              <PersonIcon />
-            </ListItemIcon>
-            <Typography variant="caption" sx={{ mt: 1 }}>
-              Profile
-            </Typography>
-          </ListItemButton>
-        </List>
-      </Drawer>
-
-      <Box component="main" sx={{ flexGrow: 1, overflow: 'auto' }}>
-        <Container maxWidth="lg" sx={{ mt: 12, mb: 4 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Box>
-              <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                Hello {session?.user.email || ''}!
-              </Typography>
-              <Typography variant="h5" color="text.secondary">
-                Manage your surveys and forms
-              </Typography>
-            </Box>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              sx={{ borderRadius: 28, bgcolor: 'main' }}
-              onClick={() => setIsDrawerOpen(true)}
-            >
-              Add form
-            </Button>
-          </Box>
-          <FormDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} refreshItems={() => setRefresh(true)} />
-
-          <Box sx={{ display: 'flex', gap: 2, mb: 6, mt: 9, justifyContent: 'center' }}>
-            <Button
-              variant="contained"
-              startIcon={<BarChartIcon />}
-              sx={{
-                borderRadius: 28,
-                bgcolor: '#a29bfe',
-                '&:hover': { bgcolor: '#8c7ae6' }
-              }}
-            >
-              Rate
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<BarChartIcon />}
-              sx={{
-                borderRadius: 28,
-                bgcolor: '#a29bfe',
-                '&:hover': { bgcolor: '#8c7ae6' }
-              }}
-            >
-              Positive feedback
-            </Button>
-            <Button
-              variant="outlined"
-              sx={{
-                borderRadius: 28,
-                color: '#6c5ce7',
-                borderColor: '#6c5ce7',
-                '&:hover': { borderColor: '#5649c9' }
-              }}
-            >
-              Negative feedback
-            </Button>
-          </Box>
-
-          <SurveyItemsList
-            items={surveyItems}
-            loading={loading}
-            onSurveyClick={handleSurveyClick}
-          />
-
-          {surveyItems.length > 0 && (
-            <Box
-              sx={{
-                bottom: 0,
-                left: 0,
-                width: '100%',
+      <Box sx={{ display: 'flex' }}>
+        <Drawer
+            variant="permanent"
+            sx={{
+              width: 60,
+              flexShrink: 0,
+              '& .MuiDrawer-paper': {
+                width: 100,
+                boxSizing: 'border-box',
                 display: 'flex',
-                justifyContent: 'center',
-                bgcolor: 'main',
-                py: 5,
-              }}
-            >
-              <Pagination
-                count={totalPages}
-                page={page}
-                onChange={handlePageChange}
-                color="primary"
-                sx={{
-                  '& .MuiPaginationItem-root': {
-                    '&.Mui-selected': {
-                      bgcolor: '#a29bfe',
-                    },
-                  },
-                }}
-              />
+                flexDirection: 'column',
+                alignItems: 'center',
+                py: 2,
+                bgcolor: '#f8f8f8'
+              },
+            }}
+        >
+          <Box sx={{ mb: 4, justifyContent: 'center' }}>
+            <Typography variant="h6">LOGO</Typography>
+          </Box>
+          <List>
+            <ListItemButton sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
+              <ListItemIcon sx={{ minWidth: 'auto' }}>
+                <QuestionAnswerIcon />
+              </ListItemIcon>
+              <Typography variant="caption" sx={{ mt: 1 }}>
+                Questions
+              </Typography>
+            </ListItemButton>
+            <ListItemButton sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
+              <ListItemIcon sx={{ minWidth: 'auto' }}>
+                <BarChartIcon />
+              </ListItemIcon>
+              <Typography variant="caption" sx={{ mt: 1 }}>
+                Statistics
+              </Typography>
+            </ListItemButton>
+            <ListItemButton sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
+              <ListItemIcon sx={{ minWidth: 'auto' }}>
+                <PersonIcon />
+              </ListItemIcon>
+              <Typography variant="caption" sx={{ mt: 1 }}>
+                Profile
+              </Typography>
+            </ListItemButton>
+          </List>
+        </Drawer>
+
+        <Box component="main" sx={{ flexGrow: 1, overflow: 'auto' }}>
+          <Container maxWidth="lg" sx={{ mt: 12, mb: 4 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Box>
+                <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                  Hello {session?.user.email || ''}!
+                </Typography>
+                <Typography variant="h5" color="text.secondary">
+                  Manage your surveys and forms
+                </Typography>
+              </Box>
+              <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  sx={{ borderRadius: 28, bgcolor: 'main' }}
+                  onClick={() => setIsDrawerOpen(true)}
+              >
+                Add form
+              </Button>
             </Box>
-          )}
-        </Container>
+
+            <FormDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} refreshItems={() => setRefresh(true)} />
+
+            <Box sx={{ display: 'flex', gap: 2, mb: 6, mt: 9, justifyContent: 'center' }}>
+              <Button
+                  variant="contained"
+                  startIcon={<BarChartIcon />}
+                  sx={{
+                    borderRadius: 28,
+                    bgcolor: '#a29bfe',
+                    '&:hover': { bgcolor: '#8c7ae6' }
+                  }}
+              >
+                Rate
+              </Button>
+              <Button
+                  variant="contained"
+                  startIcon={<BarChartIcon />}
+                  sx={{
+                    borderRadius: 28,
+                    bgcolor: '#a29bfe',
+                    '&:hover': { bgcolor: '#8c7ae6' }
+                  }}
+              >
+                Positive feedback
+              </Button>
+              <Button
+                  variant="outlined"
+                  sx={{
+                    borderRadius: 28,
+                    color: '#6c5ce7',
+                    borderColor: '#6c5ce7',
+                    '&:hover': { borderColor: '#5649c9' }
+                  }}
+              >
+                Negative feedback
+              </Button>
+            </Box>
+
+            <SurveyItemsList
+                items={surveyItems}
+                loading={loading}
+                onSurveyClick={handleSurveyClick}
+            />
+
+            {surveyItems.length > 0 && (
+                <Box
+                    sx={{
+                      bottom: 0,
+                      left: 0,
+                      width: '100%',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      bgcolor: 'main',
+                      py: 5,
+                    }}
+                >
+                  <Pagination
+                      count={totalPages}
+                      page={page}
+                      onChange={handlePageChange}
+                      color="primary"
+                      sx={{
+                        '& .MuiPaginationItem-root': {
+                          '&.Mui-selected': {
+                            bgcolor: '#a29bfe',
+                          },
+                        },
+                      }}
+                  />
+                </Box>
+            )}
+          </Container>
+        </Box>
       </Box>
-    </Box>
   );
 }
