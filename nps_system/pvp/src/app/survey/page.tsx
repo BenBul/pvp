@@ -19,8 +19,8 @@ import {
   BarChart as BarChartIcon,
   Person as PersonIcon
 } from '@mui/icons-material';
-import FormDrawer from '@/components/FormDrawer';
-import SurveyItemsList from './surveyItem/surveyItemsList';
+import FormDrawer from '@/app/components/dashboard/surveys/FormDrawer';
+import SurveyItemsList from '@/app/components/dashboard/surveys/SurveyItemList';
 import TopBar from '../components/TopBar';
 import { supabase } from '@/supabase/client';
 import { session } from '@/supabase/client';
@@ -55,17 +55,18 @@ export default function SurveysPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
+
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
 
         const { count: totalItems, error: countError } = await supabase
-            .from('survey')
+            .from('surveys')
             .select('*', { count: 'exact' });
 
         if (countError) throw countError;
 
         const { data: rawSurveyItems, error } = await supabase
-            .from('survey')
+            .from('surveys')
             .select('*')
             .order('created_at', { ascending: false })
             .range(from, to);
@@ -161,7 +162,7 @@ export default function SurveysPage() {
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Box>
                   <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                    Hello {session?.user.email}!
+                    Hello {session?.user.email || ''}!
                   </Typography>
                   <Typography variant="h5" color="text.secondary">
                     Manage your surveys and forms
@@ -170,11 +171,7 @@ export default function SurveysPage() {
                 <Button
                     variant="contained"
                     startIcon={<AddIcon />}
-                    sx={{
-                      borderRadius: 28,
-                      bgcolor: '#6c5ce7',
-                      '&:hover': { bgcolor: '#5649c9' }
-                    }}
+                    sx={{ borderRadius: 28, bgcolor: 'main' }}
                     onClick={() => setIsDrawerOpen(true)}
                 >
                   Add form
@@ -184,18 +181,74 @@ export default function SurveysPage() {
               <FormDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} refreshItems={() => setRefresh(true)} />
 
               <Box sx={{ display: 'flex', gap: 2, mb: 6, mt: 9, justifyContent: 'center' }}>
-                <Button variant="contained" startIcon={<BarChartIcon />} sx={{ borderRadius: 28, bgcolor: '#a29bfe', '&:hover': { bgcolor: '#8c7ae6' } }}>Rate</Button>
-                <Button variant="contained" startIcon={<BarChartIcon />} sx={{ borderRadius: 28, bgcolor: '#a29bfe', '&:hover': { bgcolor: '#8c7ae6' } }}>Positive feedback</Button>
-                <Button variant="outlined" sx={{ borderRadius: 28, color: '#6c5ce7', borderColor: '#6c5ce7', '&:hover': { borderColor: '#5649c9' } }}>Negative feedback</Button>
+                <Button
+                    variant="contained"
+                    startIcon={<BarChartIcon />}
+                    sx={{
+                      borderRadius: 28,
+                      bgcolor: '#a29bfe',
+                      '&:hover': { bgcolor: '#8c7ae6' }
+                    }}
+                >
+                  Rate
+                </Button>
+                <Button
+                    variant="contained"
+                    startIcon={<BarChartIcon />}
+                    sx={{
+                      borderRadius: 28,
+                      bgcolor: '#a29bfe',
+                      '&:hover': { bgcolor: '#8c7ae6' }
+                    }}
+                >
+                  Positive feedback
+                </Button>
+                <Button
+                    variant="outlined"
+                    sx={{
+                      borderRadius: 28,
+                      color: '#6c5ce7',
+                      borderColor: '#6c5ce7',
+                      '&:hover': { borderColor: '#5649c9' }
+                    }}
+                >
+                  Negative feedback
+                </Button>
               </Box>
 
-              <SurveyItemsList items={surveyItems} loading={loading} onSurveyClick={handleSurveyClick} />
+              <SurveyItemsList
+                  items={surveyItems}
+                  loading={loading}
+                  onSurveyClick={handleSurveyClick}
+              />
 
               {surveyItems.length > 0 && (
-                  <Box sx={{ position: 'fixed', bottom: 0, left: 0, width: '100%', display: 'flex', justifyContent: 'center', bgcolor: 'background.paper', py: 5 }}>
-                    <Pagination count={totalPages} page={page} onChange={handlePageChange} color="primary" sx={{ '& .MuiPaginationItem-root': { '&.Mui-selected': { bgcolor: '#a29bfe' } } }} />
+                  <Box
+                      sx={{
+                        mt: 4,
+                        width: '100%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        bgcolor: '#f5f0ff', // arba kita šviesi spalva, kaip ir viršus
+                        py: 3
+                      }}
+                  >
+                    <Pagination
+                        count={totalPages}
+                        page={page}
+                        onChange={handlePageChange}
+                        color="primary"
+                        sx={{
+                          '& .MuiPaginationItem-root': {
+                            '&.Mui-selected': {
+                              bgcolor: '#a29bfe'
+                            }
+                          }
+                        }}
+                    />
                   </Box>
               )}
+
             </Container>
           </Box>
         </Box>
