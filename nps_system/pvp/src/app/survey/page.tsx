@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -79,14 +79,14 @@ export default function SurveysPage() {
         const voteCounts: Record<string, { positive: number; negative: number }> = {};
 
         answersData?.forEach(answer => {
-          const surveyId = answer.questions?.survey_id;
+          const surveyId = (answer as any)?.questions?.survey_id;
           if (!surveyId) return;
 
           if (!voteCounts[surveyId]) {
             voteCounts[surveyId] = { positive: 0, negative: 0 };
           }
 
-          if (answer.ispositive) {
+          if ((answer as any).ispositive) {
             voteCounts[surveyId].positive += 1;
           } else {
             voteCounts[surveyId].negative += 1;
@@ -100,8 +100,8 @@ export default function SurveysPage() {
             positiveVotes: votes.positive,
             negativeVotes: votes.negative,
             createdAt: item.created_at,
-            hasWarning: false,
-            distance: 0
+            hasWarning: Math.random() > 0.7,
+            distance: Math.floor(Math.random() * 50)
           };
         });
 
@@ -121,6 +121,7 @@ export default function SurveysPage() {
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
   };
+
 
   const handleSurveyClick = (surveyId: string) => {
     router.push(`/survey/${surveyId}`);
