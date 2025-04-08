@@ -19,7 +19,7 @@ import {
   BarChart as BarChartIcon,
   Person as PersonIcon
 } from '@mui/icons-material';
-import FormDrawer from '@/components/FormDrawer';
+import FormDrawer from '@/app/components/dashboard/surveys/FormDrawer';
 import SurveyItemsList from './surveyItem/surveyItemsList';
 import TopBar from '../components/TopBar';
 import { supabase } from '@/supabase/client';
