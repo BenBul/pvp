@@ -20,7 +20,7 @@ import {
   Person as PersonIcon
 } from '@mui/icons-material';
 import FormDrawer from '@/app/components/dashboard/surveys/FormDrawer';
-import SurveyItemsList from './surveyItem/surveyItemsList';
+import SurveyItemsList from '@/app/components/dashboard/surveys/SurveyItemList';
 import TopBar from '../components/TopBar';
 import { supabase } from '@/supabase/client';
 import { session } from '@/supabase/client';
@@ -55,36 +55,71 @@ export default function SurveysPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
+
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
 
         const { count: totalItems, error: countError } = await supabase
-            .from('survey')
+            .from('surveys')
             .select('*', { count: 'exact' });
 
         if (countError) throw countError;
 
         const { data: rawSurveyItems, error } = await supabase
-            .from('survey')
+            .from('surveys')
             .select('*')
             .order('created_at', { ascending: false })
             .range(from, to);
 
         if (error) throw error;
 
-        const surveyItems: SurveyItem[] = (rawSurveyItems || []).map(item => ({
-          ...item,
-          positiveVotes: Math.floor(Math.random() * 100),
-          negativeVotes: Math.floor(Math.random() * 100),
-          createdAt: item.created_at,
-          hasWarning: Math.random() > 0.7,
-          distance: Math.floor(Math.random() * 50)
-        }));
+        // Get all answers with nested survey_id via question_id
+        const { data: answersData, error: answersError } = await supabase
+            .from('answers')
+            .select(`
+          ispositive,
+          question_id,
+          questions:question_id (
+            survey_id
+          )
+        `);
+
+        if (answersError) throw answersError;
+
+        // Count votes per survey
+        const voteCounts: Record<string, { positive: number; negative: number }> = {};
+
+        answersData?.forEach(answer => {
+          const surveyId = (answer as any)?.questions?.survey_id;
+          if (!surveyId) return;
+
+          if (!voteCounts[surveyId]) {
+            voteCounts[surveyId] = { positive: 0, negative: 0 };
+          }
+
+          if ((answer as any).ispositive) {
+            voteCounts[surveyId].positive += 1;
+          } else {
+            voteCounts[surveyId].negative += 1;
+          }
+        });
+
+        const surveyItems: SurveyItem[] = (rawSurveyItems || []).map(item => {
+          const votes = voteCounts[item.id] || { positive: 0, negative: 0 };
+          return {
+            ...item,
+            positiveVotes: votes.positive,
+            negativeVotes: votes.negative,
+            createdAt: item.created_at,
+            hasWarning: Math.random() > 0.7,
+            distance: Math.floor(Math.random() * 50),
+          };
+        });
 
         setSurveyItems(surveyItems);
         setTotalPages(Math.ceil((totalItems || 0) / pageSize));
       } catch (error) {
-        console.error('Error fetching survey items:', error);
+        console.error('Error fetching survey items or answers:', error);
         setSurveyItems([]);
       } finally {
         setLoading(false);
@@ -94,6 +129,7 @@ export default function SurveysPage() {
 
     fetchData();
   }, [page, refresh]);
+
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
@@ -161,7 +197,7 @@ export default function SurveysPage() {
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Box>
                   <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                    Hello {session?.user.email}!
+                    Hello {session?.user.email || ''}!
                   </Typography>
                   <Typography variant="h5" color="text.secondary">
                     Manage your surveys and forms
@@ -170,11 +206,7 @@ export default function SurveysPage() {
                 <Button
                     variant="contained"
                     startIcon={<AddIcon />}
-                    sx={{
-                      borderRadius: 28,
-                      bgcolor: '#6c5ce7',
-                      '&:hover': { bgcolor: '#5649c9' }
-                    }}
+                    sx={{ borderRadius: 28, bgcolor: 'main' }}
                     onClick={() => setIsDrawerOpen(true)}
                 >
                   Add form
@@ -184,18 +216,74 @@ export default function SurveysPage() {
               <FormDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} refreshItems={() => setRefresh(true)} />
 
               <Box sx={{ display: 'flex', gap: 2, mb: 6, mt: 9, justifyContent: 'center' }}>
-                <Button variant="contained" startIcon={<BarChartIcon />} sx={{ borderRadius: 28, bgcolor: '#a29bfe', '&:hover': { bgcolor: '#8c7ae6' } }}>Rate</Button>
-                <Button variant="contained" startIcon={<BarChartIcon />} sx={{ borderRadius: 28, bgcolor: '#a29bfe', '&:hover': { bgcolor: '#8c7ae6' } }}>Positive feedback</Button>
-                <Button variant="outlined" sx={{ borderRadius: 28, color: '#6c5ce7', borderColor: '#6c5ce7', '&:hover': { borderColor: '#5649c9' } }}>Negative feedback</Button>
+                <Button
+                    variant="contained"
+                    startIcon={<BarChartIcon />}
+                    sx={{
+                      borderRadius: 28,
+                      bgcolor: '#a29bfe',
+                      '&:hover': { bgcolor: '#8c7ae6' }
+                    }}
+                >
+                  Rate
+                </Button>
+                <Button
+                    variant="contained"
+                    startIcon={<BarChartIcon />}
+                    sx={{
+                      borderRadius: 28,
+                      bgcolor: '#a29bfe',
+                      '&:hover': { bgcolor: '#8c7ae6' }
+                    }}
+                >
+                  Positive feedback
+                </Button>
+                <Button
+                    variant="outlined"
+                    sx={{
+                      borderRadius: 28,
+                      color: '#6c5ce7',
+                      borderColor: '#6c5ce7',
+                      '&:hover': { borderColor: '#5649c9' }
+                    }}
+                >
+                  Negative feedback
+                </Button>
               </Box>
 
-              <SurveyItemsList items={surveyItems} loading={loading} onSurveyClick={handleSurveyClick} />
+              <SurveyItemsList
+                  items={surveyItems}
+                  loading={loading}
+                  onSurveyClick={handleSurveyClick}
+              />
 
               {surveyItems.length > 0 && (
-                  <Box sx={{ position: 'fixed', bottom: 0, left: 0, width: '100%', display: 'flex', justifyContent: 'center', bgcolor: 'background.paper', py: 5 }}>
-                    <Pagination count={totalPages} page={page} onChange={handlePageChange} color="primary" sx={{ '& .MuiPaginationItem-root': { '&.Mui-selected': { bgcolor: '#a29bfe' } } }} />
+                  <Box
+                      sx={{
+                        mt: 4,
+                        width: '100%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        bgcolor: '#f5f0ff', // arba kita šviesi spalva, kaip ir viršus
+                        py: 3
+                      }}
+                  >
+                    <Pagination
+                        count={totalPages}
+                        page={page}
+                        onChange={handlePageChange}
+                        color="primary"
+                        sx={{
+                          '& .MuiPaginationItem-root': {
+                            '&.Mui-selected': {
+                              bgcolor: '#a29bfe'
+                            }
+                          }
+                        }}
+                    />
                   </Box>
               )}
+
             </Container>
           </Box>
         </Box>
