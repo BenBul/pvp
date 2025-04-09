@@ -33,9 +33,9 @@ supabase.auth.onAuthStateChange((_, _session) => {
 //       console.log('Google Sign-In initiated.');
 //     }
 //   };
-  
+
 
 export const logout = async () => {
     await supabase.auth.signOut();
-    window.location.reload();
+    window.location.href = "/";
 };
