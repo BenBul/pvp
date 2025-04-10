@@ -8,6 +8,7 @@ export default function Page() {
     const [imageUrl, setImageUrl] = useState("");
     const [error, setError] = useState("");
     const [color, setColor] = useState("#000000");
+    const [URL, setURL] = useState("localhost:3000");
 
     const handleColorChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setColor(event.target.value);
@@ -20,7 +21,7 @@ export default function Page() {
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ color }),
+                body: JSON.stringify({ color, URL }),
             });
 
             const data = await response.json();
