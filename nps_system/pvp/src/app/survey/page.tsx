@@ -73,19 +73,53 @@ export default function SurveysPage() {
 
         if (error) throw error;
 
-        const surveyItems: SurveyItem[] = (rawSurveyItems || []).map(item => ({
-          ...item,
-          positiveVotes: Math.floor(Math.random() * 100),
-          negativeVotes: Math.floor(Math.random() * 100),
-          createdAt: item.created_at,
-          hasWarning: Math.random() > 0.7,
-          distance: Math.floor(Math.random() * 50)
-        }));
+        // Get all answers with nested survey_id via question_id
+        const { data: answersData, error: answersError } = await supabase
+            .from('answers')
+            .select(`
+          ispositive,
+          question_id,
+          questions:question_id (
+            survey_id
+          )
+        `);
+
+        if (answersError) throw answersError;
+
+        // Count votes per survey
+        const voteCounts: Record<string, { positive: number; negative: number }> = {};
+
+        answersData?.forEach(answer => {
+          const surveyId = (answer as any)?.questions?.survey_id;
+          if (!surveyId) return;
+
+          if (!voteCounts[surveyId]) {
+            voteCounts[surveyId] = { positive: 0, negative: 0 };
+          }
+
+          if ((answer as any).ispositive) {
+            voteCounts[surveyId].positive += 1;
+          } else {
+            voteCounts[surveyId].negative += 1;
+          }
+        });
+
+        const surveyItems: SurveyItem[] = (rawSurveyItems || []).map(item => {
+          const votes = voteCounts[item.id] || { positive: 0, negative: 0 };
+          return {
+            ...item,
+            positiveVotes: votes.positive,
+            negativeVotes: votes.negative,
+            createdAt: item.created_at,
+            hasWarning: Math.random() > 0.7,
+            distance: Math.floor(Math.random() * 50),
+          };
+        });
 
         setSurveyItems(surveyItems);
         setTotalPages(Math.ceil((totalItems || 0) / pageSize));
       } catch (error) {
-        console.error('Error fetching survey items:', error);
+        console.error('Error fetching survey items or answers:', error);
         setSurveyItems([]);
       } finally {
         setLoading(false);
@@ -95,6 +129,7 @@ export default function SurveysPage() {
 
     fetchData();
   }, [page, refresh]);
+
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
@@ -255,3 +290,4 @@ export default function SurveysPage() {
       </>
   );
 }
+//
