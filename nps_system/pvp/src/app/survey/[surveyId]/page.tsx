@@ -1,99 +1,136 @@
 "use client"
 
 import { useParams } from 'next/navigation';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "@/supabase/client";
+import { 
+  Box, 
+  Button, 
+  Container, 
+  Typography
+} from '@mui/material';
+import { Add as AddIcon } from '@mui/icons-material';
 
-export default function Page() {
-    const { surveyId } = useParams();
-    const [isCreating, setIsCreating] = useState(false);
-    const [error, setError] = useState("");
+import QuestionsList from '../questions/questionsList';
+import AddQuestionModal from '../questions/addQuestionModal';
+import QrViewDialog from '../questions/qrViewDialog';
 
-    const handleCreateBoolQuestion = async () => {
-        setIsCreating(true);
-        setError("");
+export default function SurveyPage() {
+  const { surveyId } = useParams();
+  const [questions, setQuestions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [surveyTitle, setSurveyTitle] = useState("Loading...");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [qrViewDialog, setQrViewDialog] = useState({
+    open: false,
+    url: null,
+    type: ""
+  });
 
-        const questionId = crypto.randomUUID();
-        const positiveEntryId = crypto.randomUUID();
-        const negativeEntryId = crypto.randomUUID();
+  useEffect(() => {
+    async function fetchSurveyData() {
+      setIsLoading(true);
+      try {
+        const { data: surveyData, error: surveyError } = await supabase
+          .from('surveys')
+          .select('title')
+          .eq('id', surveyId)
+          .single();
+        
+        if (surveyError) throw surveyError;
+        if (surveyData) setSurveyTitle(surveyData.title);
+        
+        const { data: questionsData, error: questionsError } = await supabase
+          .from('questions')
+          .select(`
+            *,
+            entries (*)
+          `)
+          .eq('survey_id', surveyId)
+          .order('created_at', { ascending: false });
 
-        try {
-            const positiveResponse = await fetch("/api/qr", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    color: "#008000",
-                    URL: `${window.location.protocol}/${window.location.host}/entry/${questionId}/${positiveEntryId}`
-                }),
-            });
+        if (questionsError) throw questionsError;
+        setQuestions(questionsData || []);
+      } catch (error) {
+        console.error("Error fetching survey data:", error);
+        setError("Failed to load survey data");
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
-            const negativeResponse = await fetch("/api/qr", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    color: "#ff0000",
-                    URL: `${window.location.protocol}/${window.location.host}/entry/${questionId}/${negativeEntryId}`
-                }),
-            });
+    if (surveyId) {
+      fetchSurveyData();
+    }
+  }, [surveyId]);
 
-            const positiveData = await positiveResponse.json();
-            const negativeData = await negativeResponse.json();
+  const handleAddQuestion = (newQuestion) => {
+    setQuestions([newQuestion, ...questions]);
+  };
 
-            const { error: questionError } = await supabase
-                .from('questions')
-                .insert({
-                    id: questionId,
-                    description: "description",
-                    type: "binary",
-                    survey_id: surveyId,
-                });
+  const openAddModal = () => {
+    setShowAddModal(true);
+    document.body.style.overflow = 'hidden';
+  };
+  
+  const closeAddModal = () => {
+    setShowAddModal(false);
+    document.body.style.overflow = 'auto';
+  };
 
-            if (questionError) throw questionError;
+  const openQrDialog = (url, type) => {
+    setQrViewDialog({
+      open: true,
+      url,
+      type
+    });
+  };
 
-            const { error: entriesError } = await supabase
-                .from('entries')
-                .insert([
-                    {
-                        id: positiveEntryId,
-                        url: positiveData.url,
-                        question_id: questionId,
-                        value: "positive"
-                    },
-                    {
-                        id: negativeEntryId,
-                        url: negativeData.url,
-                        question_id: questionId,
-                        value: "negative"
-                    }
-                ]);
+  const closeQrDialog = () => {
+    setQrViewDialog({
+      open: false,
+      url: null,
+      type: ""
+    });
+  };
 
-            if (entriesError) throw entriesError;
+  return (
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Box>
+          <Typography variant="h4" component="h1" fontWeight="bold">{surveyTitle}</Typography>
+        </Box>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={openAddModal}
+        >
+          Add Question
+        </Button>
+      </Box>
 
-        } catch (error) {
-            console.error("Error creating question and QR codes:", error);
-            setError("Failed to create question. Please try again.");
-        } finally {
-            setIsCreating(false);
-        }
-    };
+      <QuestionsList 
+        questions={questions} 
+        isLoading={isLoading} 
+        onAddQuestion={openAddModal}
+        onOpenQrDialog={openQrDialog}
+      />
 
-    return (
-        <div style={{ padding: '20px', textAlign: 'center' }}>
-            <h1>Survey Page</h1>
-            <p>Survey ID: {surveyId}</p>
-
-            <button
-                onClick={handleCreateBoolQuestion}
-                disabled={isCreating}
-            >
-                {isCreating ? "Creating..." : "Create a new bool question"}
-            </button>
-
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-        </div>
-    );
+      <AddQuestionModal
+        open={showAddModal}
+        onClose={closeAddModal}
+        surveyId={surveyId}
+        onQuestionAdded={handleAddQuestion}
+      />
+      
+      <QrViewDialog
+        open={qrViewDialog.open}
+        url={qrViewDialog.url}
+        type={qrViewDialog.type}
+        onClose={closeQrDialog}
+      />
+    </Container>
+  );
 }

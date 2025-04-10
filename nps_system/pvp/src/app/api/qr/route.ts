@@ -3,14 +3,14 @@ import axios from 'axios';
 
 export async function POST(request: Request) {
     try {
-        const { color, URL } = await request.json();
+        const { color, body, URL, logo } = await request.json();
 
         const url = 'https://api.qrcode-monkey.com//qr/custom';
 
         const payload = {
             data: URL,
             config: {
-                body: "square",
+                body: body || "square",
                 eye: "frame0",
                 eyeBall: "ball0",
                 erf1: [],
@@ -19,20 +19,20 @@ export async function POST(request: Request) {
                 brf1: [],
                 brf2: [],
                 brf3: [],
-                bodyColor: color,
+                bodyColor: color || "#000000",
                 bgColor: "#FFFFFF",
-                eye1Color: color,
-                eye2Color: color,
-                eye3Color: color,
-                eyeBall1Color: color,
-                eyeBall2Color: color,
-                eyeBall3Color: color,
+                eye1Color: color || "#000000",
+                eye2Color: color || "#000000",
+                eye3Color: color || "#000000",
+                eyeBall1Color: color || "#000000",
+                eyeBall2Color: color || "#000000",
+                eyeBall3Color: color || "#000000",
                 gradientColor1: "",
                 gradientColor2: "",
                 gradientType: "linear",
                 gradientOnEyes: "true",
-                logo: "",
-                logoMode: "default"
+                logo: logo || "",
+                logoMode: logo ? "default" : ""
             },
             size: 1000,
             download: "imageUrl",
