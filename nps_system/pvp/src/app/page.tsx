@@ -18,7 +18,6 @@ export default function Home() {
 
     return (
         <main style={{ backgroundColor: "#F8F0FB" }}>
-            <Navigation onScrollTo={scrollToSection} />
             <HeroSection />
             <AboutSection />
             <WhyUsSection />
