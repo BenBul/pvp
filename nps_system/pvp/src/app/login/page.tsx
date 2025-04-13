@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useRouter } from 'next/navigation';
 import { Container, Card, CardContent, Typography, TextField, Button, Box, Avatar, Alert } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import { supabase } from '@/supabase/client';
+import { session, supabase } from '@/supabase/client';
 import CircularProgress from "@mui/material/CircularProgress";
 
 const LoginPage = () => {
@@ -35,6 +35,12 @@ const LoginPage = () => {
             setLoginError('An error occurred. Please try again.');
         }
     };
+
+    useEffect(() => {
+        if(session) {
+            router.push('/survey');
+        }
+    }, []);
 
     const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
