@@ -6,6 +6,7 @@ import StatisticsTemplate from '@/app/components/dashboard/statistics/Template';
 import { List, ListItem, ListItemButton, ListItemText } from '@mui/material';
 import { supabase } from '@/supabase/client';
 import LoadingBox from '@/app/components/LoadingBox';
+import { useRouter } from "next/navigation";
 
 interface IQuestion {
     id: string;
@@ -26,6 +27,7 @@ export default function SurveyStatisticsPage() {
     const [questions, setQuestions] = useState<IQuestion[]>([]);
     const [answers, setAnswers] = useState<IAnswer[]>([]);
     const [loading, setLoading] = useState(true);
+    const router = useRouter();
 
     const headers = [
         { key: 'question', label: 'Question' },
@@ -34,6 +36,10 @@ export default function SurveyStatisticsPage() {
         { key: 'rating', label: 'Rating' },
         { key: 'input', label: 'Input' },
     ];
+
+    const handleOpenQuestionStatistics = (questionId: string) => {
+        router.push(`/statistics/${survey}/${questionId}`);
+    }
 
     const tableData = answers.map((answer) => {
         const question = questions.find((q) => q.id === answer.question_id)?.description || 'Unknown Question';
@@ -125,7 +131,7 @@ export default function SurveyStatisticsPage() {
                 <List>
                     {questions.map((question) => (
                         <ListItem key={question.id}>
-                            <ListItemButton>
+                            <ListItemButton onClick={() => handleOpenQuestionStatistics(question.id)}>
                                 <ListItemText primary={question.description} secondary={question.type} />
                             </ListItemButton>
                         </ListItem>
