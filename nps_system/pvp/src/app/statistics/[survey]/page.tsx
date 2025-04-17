@@ -37,8 +37,8 @@ export default function SurveyStatisticsPage() {
         { key: 'input', label: 'Input' },
     ];
 
-    const handleOpenQuestionStatistics = (questionId: string) => {
-        router.push(`/statistics/${survey}/${questionId}`);
+    const handleOpenQuestionStatistics = (question: string) => {
+        router.push(`/statistics/${survey}/${question}`);
     }
 
     const tableData = answers.map((answer) => {

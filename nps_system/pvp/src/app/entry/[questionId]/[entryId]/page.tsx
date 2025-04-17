@@ -154,7 +154,6 @@ export default function EntryPage() {
                 >
                     {!success && !cancelled ? (
                         <>
-                            {/* Progress bar at the top */}
                             <Box sx={{
                                 position: 'absolute',
                                 top: 0,

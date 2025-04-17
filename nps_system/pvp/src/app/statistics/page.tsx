@@ -16,7 +16,7 @@ export default function StatisticsPage() {
         description?: string;
     }[]>([]);
 
-    const handleSurveyClick = (id: number) => {
+    const handleSurveyClick = (id: string) => {
         router.push(`/statistics/${id}`);
     };
 
