@@ -17,29 +17,22 @@ interface QuestionTemplateProps {
     chart1?: React.ReactNode;
     chart2?: React.ReactNode;
     chart3?: React.ReactNode;
-    chart4?: React.ReactNode;
 }
 
-const QuestionTemplate: React.FC<QuestionTemplateProps> = ({ headers, data, chart1, chart2, chart3, chart4 }) => {
+const QuestionTemplate: React.FC<QuestionTemplateProps> = ({ headers, data, chart1, chart2, chart3 }) => {
     return (
-        <Box sx={{ height: '100vh', p: { xs: 1, sm: 2 }, display: 'flex', flexDirection: 'column' }}>
-            {/* Chart Grid */}
+        <Box sx={{ p: { xs: 1, sm: 2 }, display: 'flex', flexDirection: 'column' }}>
             <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={12} md={6}>
-                    <Paper sx={chartBoxStyle}>{chart1}</Paper>
+                    <Paper sx={smallChartBoxStyle}>{chart1}</Paper>
                 </Grid>
                 <Grid item xs={12} md={6}>
-                    <Paper sx={chartBoxStyle}>{chart2}</Paper>
+                    <Paper sx={smallChartBoxStyle}>{chart2}</Paper>
                 </Grid>
-                <Grid item xs={12} md={6}>
-                    <Paper sx={chartBoxStyle}>{chart3}</Paper>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                    <Paper sx={chartBoxStyle}>{chart4}</Paper>
+                <Grid item xs={12}>
+                    <Paper sx={bigChartBoxStyle}>{chart3}</Paper>
                 </Grid>
             </Grid>
-
-            {/* Table */}
             <Paper sx={{ flex: 1, overflow: 'auto', p: 2 }}>
                 <TableContainer>
                     <Table stickyHeader>
@@ -71,8 +64,17 @@ const QuestionTemplate: React.FC<QuestionTemplateProps> = ({ headers, data, char
     );
 };
 
-const chartBoxStyle = {
-    height: { xs: 200, md: 300 },
+const smallChartBoxStyle = {
+    height: { xs: 400, md: 450 },
+    width: '100%',
+    p: 2,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+};
+
+const bigChartBoxStyle = {
+    height: { xs: 400, md: 500 },
     p: 2,
     display: 'flex',
     alignItems: 'center',
