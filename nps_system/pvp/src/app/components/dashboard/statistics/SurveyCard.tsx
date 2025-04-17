@@ -6,7 +6,7 @@ interface SurveyCardProps {
     created_at: string;
     title: string;
     description?: string; 
-    onClick: (id: number) => void;
+    onClick: (id: string) => void;
 }
 
 const SurveyCard: React.FC<SurveyCardProps> = ({ id, title, description, onClick }) => {

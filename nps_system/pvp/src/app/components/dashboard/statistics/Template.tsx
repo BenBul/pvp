@@ -11,27 +11,72 @@ interface StatisticsTemplateProps {
 
 const StatisticsTemplate: React.FC<StatisticsTemplateProps> = ({ headers, data, chart1, chart2, sidebar }) => {
     return (
-        <Box sx={{ height: '100vh', p: { xs: 1, sm: 2 }, display: 'flex', flexDirection: 'column' }}>
+        <Box
+            sx={{
+                height: '100vh',
+                p: { xs: 1, sm: 2 },
+                display: 'flex',
+                flexDirection: 'column',
+                ml: { md: '100px' }, // 💥 ŠITAS PRIDĖTA – kad kompensuotų Drawer
+            }}
+        >
             <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={12} md={6}>
-                    <Paper sx={{ height: { xs: 200, md: 300 }, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Paper
+                        sx={{
+                            height: { xs: 200, md: 300 },
+                            p: 2,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                    >
                         {chart1}
                     </Paper>
                 </Grid>
                 <Grid item xs={12} md={6}>
-                    <Paper sx={{ height: { xs: 200, md: 300 }, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Paper
+                        sx={{
+                            height: { xs: 200, md: 300 },
+                            p: 2,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                        }}
+                    >
                         {chart2}
                     </Paper>
                 </Grid>
             </Grid>
-            <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden', flexDirection: { xs: 'column', md: 'row' } }}>
-                <Paper sx={{ flex: 1, overflow: 'auto', mb: { xs: 2, md: 0 }, mr: { md: sidebar ? 2 : 0 }, p: 2 }}>
+            <Box
+                sx={{
+                    display: 'flex',
+                    flex: 1,
+                    overflow: 'hidden',
+                    flexDirection: { xs: 'column', md: 'row' },
+                }}
+            >
+                <Paper
+                    sx={{
+                        flex: 1,
+                        overflow: 'auto',
+                        mb: { xs: 2, md: 0 },
+                        mr: { md: sidebar ? 2 : 0 },
+                        p: 2,
+                    }}
+                >
                     <TableContainer>
                         <Table stickyHeader>
                             <TableHead>
                                 <TableRow>
                                     {headers.map((header) => (
-                                        <TableCell key={header.key} sx={{ fontWeight: 'bold', backgroundColor: '#f5f5f5' }}>
+                                        <TableCell
+                                            key={header.key}
+                                            sx={{
+                                                fontWeight: 'bold',
+                                                backgroundColor: '#f5f5f5',
+                                            }}
+                                        >
                                             {header.label}
                                         </TableCell>
                                     ))}
@@ -67,5 +112,6 @@ const StatisticsTemplate: React.FC<StatisticsTemplateProps> = ({ headers, data, 
         </Box>
     );
 };
+
 
 export default StatisticsTemplate;

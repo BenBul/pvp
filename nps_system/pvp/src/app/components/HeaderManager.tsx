@@ -1,13 +1,32 @@
 'use client';
 
-import React from 'react';
 import { usePathname } from 'next/navigation';
-import DefaultHeader from './headers/DefaultHeader';
+import Navigation from './Navigation';
 import SurveyHeader from './headers/SurveyHeader';
 
 export default function HeaderManager() {
   const pathname = usePathname();
-  const isSurveyDetailPage = pathname.startsWith('/survey');
 
-  return isSurveyDetailPage ? <SurveyHeader /> : <DefaultHeader />;
+  if (pathname === '/') {
+    return (
+        <Navigation
+            onScrollTo={(id: string) => {
+              const element = document.getElementById(id);
+              if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+        />
+    );
+  }
+
+  if (
+      pathname.startsWith('/survey') ||
+      pathname.startsWith('/statistics') ||
+      pathname.startsWith('/profile')
+  ) {
+    return <SurveyHeader />;
+  }
+
+  return null; // Don't show any header on other pages (like /login, /register, etc.)
 }
