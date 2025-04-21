@@ -12,7 +12,14 @@ import {
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 
-const QrViewDialog = ({ open, url, type, onClose }) => {
+type QrViewDialogProps = {
+  open: boolean;
+  url: string | null;
+  type: 'positive' | 'negative';
+  onClose: () => void;
+};
+
+const QrViewDialog:React.FC<QrViewDialogProps> = ({ open, url, type, onClose }) => {
   const navigateToQrUrl = () => {
     if (url) {
       window.open(url, '_blank');

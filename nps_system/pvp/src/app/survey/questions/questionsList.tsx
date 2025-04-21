@@ -15,7 +15,31 @@ import {
 
 import QuestionItem from './questionItem';
 
-const QuestionsList = ({ questions, isLoading, onAddQuestion, onOpenQrDialog }) => {
+type Entry = {
+    id: string;
+    created_at: string;
+    question_id: string;
+    value: string;
+    url: string;
+};
+
+type Question = {
+    id: string;
+    created_at: string;
+    survey_id: string;
+    description: string;
+    type: string;
+    entries: Entry[];
+};
+
+type QuestionsListProps = {
+    questions: Question[];
+    isLoading: boolean;
+    onAddQuestion: () => void;
+    onOpenQrDialog: (url: string, type: 'positive' | 'negative') => void;
+};
+
+const QuestionsList:React.FC<QuestionsListProps> = ({ questions, isLoading, onAddQuestion, onOpenQrDialog }) => {
   return (
     <Card elevation={2} sx={{ overflow: 'hidden', borderRadius: 2 }}>
       <CardHeader 

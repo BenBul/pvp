@@ -6,8 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "seed": "npx ts-node seed-database.ts"
+    "lint": "next lint"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",

@@ -7,11 +7,35 @@ import {
 } from '@mui/material';
 import { QrCode as QrCodeIcon } from '@mui/icons-material';
 
-const QuestionItem = ({ question, isLast, showDivider, onOpenQrDialog }) => {
+type Entry = {
+  id: string;
+  created_at: string;
+  question_id: string;
+  value: string;
+  url: string;
+};
+
+type Question = {
+  id: string;
+  created_at: string;
+  survey_id: string;
+  description: string;
+  type: string;
+  entries: Entry[];
+};
+
+type QuestionItemProps = {
+  question: Question; // Define the type of the 'question' prop
+  isLast: boolean;
+  showDivider: boolean;
+  onOpenQrDialog: (url: string, type: 'positive' | 'negative') => void;
+};
+
+const QuestionItem: React.FC<QuestionItemProps> = ({ question, isLast, showDivider, onOpenQrDialog }) => {
   const positiveEntry = question.entries?.find(e => e.value === "positive");
   const negativeEntry = question.entries?.find(e => e.value === "negative");
   
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleString();
   };

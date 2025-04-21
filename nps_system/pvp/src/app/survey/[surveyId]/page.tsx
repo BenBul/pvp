@@ -3,10 +3,10 @@
 import { useParams } from 'next/navigation';
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/supabase/client";
-import { 
-  Box, 
-  Button, 
-  Container, 
+import {
+  Box,
+  Button,
+  Container,
   Typography
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
@@ -15,17 +15,44 @@ import QuestionsList from '../questions/questionsList';
 import AddQuestionModal from '../questions/addQuestionModal';
 import QrViewDialog from '../questions/qrViewDialog';
 
+type Entry = {
+  id: string;
+  created_at: string;
+  question_id: string;
+  value: string;
+  url: string;
+};
+
+type Question = {
+  id: string;
+  created_at: string;
+  survey_id: string;
+  description: string;
+  type: string;
+  entries: Entry[];
+};
+
+type QrType = "positive" | "negative";
+
+type QrDialogState = {
+  open: boolean;
+  url: string | null;
+  type: QrType;
+};
+
 export default function SurveyPage() {
-  const { surveyId } = useParams();
-  const [questions, setQuestions] = useState([]);
+  const params = useParams();
+  const rawSurveyId = params?.surveyId;
+  const surveyId = Array.isArray(rawSurveyId) ? rawSurveyId[0] : rawSurveyId ?? "";
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [surveyTitle, setSurveyTitle] = useState("Loading...");
   const [showAddModal, setShowAddModal] = useState(false);
-  const [qrViewDialog, setQrViewDialog] = useState({
+  const [qrViewDialog, setQrViewDialog] = useState<QrDialogState>({
     open: false,
     url: null,
-    type: ""
+    type: "positive"
   });
 
   useEffect(() => {
@@ -37,10 +64,10 @@ export default function SurveyPage() {
           .select('title')
           .eq('id', surveyId)
           .single();
-        
+
         if (surveyError) throw surveyError;
         if (surveyData) setSurveyTitle(surveyData.title);
-        
+
         const { data: questionsData, error: questionsError } = await supabase
           .from('questions')
           .select(`
@@ -65,7 +92,7 @@ export default function SurveyPage() {
     }
   }, [surveyId]);
 
-  const handleAddQuestion = (newQuestion) => {
+  const handleAddQuestion = (newQuestion: Question) => {
     setQuestions([newQuestion, ...questions]);
   };
 
@@ -73,13 +100,13 @@ export default function SurveyPage() {
     setShowAddModal(true);
     document.body.style.overflow = 'hidden';
   };
-  
+
   const closeAddModal = () => {
     setShowAddModal(false);
     document.body.style.overflow = 'auto';
   };
 
-  const openQrDialog = (url, type) => {
+  const openQrDialog = (url: string, type: QrType) => {
     setQrViewDialog({
       open: true,
       url,
@@ -91,7 +118,7 @@ export default function SurveyPage() {
     setQrViewDialog({
       open: false,
       url: null,
-      type: ""
+      type: "positive"
     });
   };
 
@@ -111,9 +138,9 @@ export default function SurveyPage() {
         </Button>
       </Box>
 
-      <QuestionsList 
-        questions={questions} 
-        isLoading={isLoading} 
+      <QuestionsList
+        questions={questions}
+        isLoading={isLoading}
         onAddQuestion={openAddModal}
         onOpenQrDialog={openQrDialog}
       />
@@ -124,7 +151,7 @@ export default function SurveyPage() {
         surveyId={surveyId}
         onQuestionAdded={handleAddQuestion}
       />
-      
+
       <QrViewDialog
         open={qrViewDialog.open}
         url={qrViewDialog.url}
