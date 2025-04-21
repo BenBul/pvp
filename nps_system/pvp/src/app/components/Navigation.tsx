@@ -20,7 +20,7 @@ const navLinks = [
     { label: "QR", href: "/qr" },
 ];
 
-export default function Navigation({ onScrollTo }: { onScrollTo: (id: string) => void }) {
+export default function Navigation({ onScrollToAction }: { onScrollToAction: (id: string) => void }) {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -73,7 +73,7 @@ export default function Navigation({ onScrollTo }: { onScrollTo: (id: string) =>
                                     component="button"
                                     onClick={(e) => {
                                         e.preventDefault();
-                                        onScrollTo(link.id!);
+                                        onScrollToAction(link.id!);
                                     }}
                                     underline="none"
                                     sx={{

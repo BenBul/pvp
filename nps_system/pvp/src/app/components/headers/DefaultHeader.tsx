@@ -11,5 +11,5 @@ export default function DefaultHeader() {
     }
   };
 
-  return <Navigation onScrollTo={handleScrollTo} />;
+  return <Navigation onScrollToAction={handleScrollTo} />;
 }

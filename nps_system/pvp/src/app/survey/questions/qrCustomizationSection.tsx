@@ -5,7 +5,23 @@ import {
 
  } from "@mui/icons-material";
 
-const QrCustomizationSection = ({ options, setOptions, type, previewUrl, onPreviewClick }) => (
+type QrCustomizationOptions = {
+    color: string;
+    body: string;
+    enableLogo: boolean;
+    logo: string;
+};
+
+type QrCustomizationSectionProps = {
+    options: QrCustomizationOptions;
+    setOptions: (options: QrCustomizationOptions) => void;
+    type: 'positive' | 'negative';
+    previewUrl: string | null;
+    onPreviewClick: () => void;
+};
+
+
+const QrCustomizationSection:React.FC<QrCustomizationSectionProps> = ({ options, setOptions, type, previewUrl, onPreviewClick }) => (
     <Paper elevation={0} sx={{ p: 2, mb: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="subtitle1" fontWeight="medium">
