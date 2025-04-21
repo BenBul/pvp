@@ -18,7 +18,21 @@ import {
 } from '@mui/icons-material';
 import QrCustomizationSection from './qrCustomizationSection';
 
-const AddQuestionModal = ({ open, onClose, surveyId, onQuestionAdded }) => {
+interface AddQuestionModalProps {
+  open: boolean;
+  onClose: () => void;
+  surveyId: string;
+  onQuestionAdded: (question: any) => void;
+}
+
+interface QrOptions {
+  color: string;
+  body: string;
+  logo: string;
+  enableLogo: boolean;
+}
+
+const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surveyId, onQuestionAdded }) => {
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState("");
   const [newQuestionDesc, setNewQuestionDesc] = useState("");
@@ -70,12 +84,13 @@ const AddQuestionModal = ({ open, onClose, surveyId, onQuestionAdded }) => {
     resetFormValues();
   };
 
-  const generateQrCode = async (redirectUrl, options) => {
+  const generateQrCode = async (redirectUrl: string, options: QrOptions) => {
     try {
       const payload = {
         URL: redirectUrl,
         color: options.color,
-        body: options.body
+        body: options.body,
+        logo: "",
       };
 
       if (options.enableLogo && options.logo) {
@@ -102,7 +117,7 @@ const AddQuestionModal = ({ open, onClose, surveyId, onQuestionAdded }) => {
     }
   };
 
-  const generateQrPreview = async (options, type) => {
+  const generateQrPreview = async (options: QrOptions, type: 'positive'|'negative') => {
     try {
       const baseUrl = typeof window !== 'undefined' ? 
         `${window.location.protocol}//${window.location.host}` : '';
