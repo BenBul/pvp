@@ -52,7 +52,7 @@ export default function StatisticsPage() {
     }
 
     return (
-        <Box sx={{ p: 4 }}>
+        <Box sx={{ p: 4, pl: 16 }}>
             <Typography variant="h4" sx={{ mb: 4, fontWeight: 'bold' }}>
                 Surveys
             </Typography>
@@ -71,4 +71,5 @@ export default function StatisticsPage() {
             </Grid>
         </Box>
     );
+
 }
