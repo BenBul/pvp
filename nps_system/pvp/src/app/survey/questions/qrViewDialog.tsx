@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
     Box,
     Button,
@@ -15,7 +15,6 @@ import {
     MenuItem
 } from '@mui/material';
 import { Close as CloseIcon, FileUpload as FileUploadIcon } from '@mui/icons-material';
-import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
 type QrViewDialogProps = {
@@ -27,7 +26,6 @@ type QrViewDialogProps = {
 
 const QrViewDialog: React.FC<QrViewDialogProps> = ({ open, url, type, onClose }) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-    const qrRef = useRef<HTMLDivElement>(null); // refas QR kodo eksportui
 
     const navigateToQrUrl = () => {
         if (url) {
@@ -41,31 +39,62 @@ const QrViewDialog: React.FC<QrViewDialogProps> = ({ open, url, type, onClose })
     };
 
     const handleExportOption = async (format: 'png' | 'jpeg' | 'pdf' | 'print') => {
-        if (!qrRef.current) return;
+        if (!url) return;
 
-        const canvas = await html2canvas(qrRef.current);
-        const dataUrl = canvas.toDataURL('image/png');
+        try {
+            // 1. Fetch SVG kaip tekstą
+            const response = await fetch(url);
+            const svgText = await response.text();
 
-        if (format === 'print') {
-            const printWindow = window.open('', '_blank');
-            if (printWindow) {
-                printWindow.document.write(`<img src="${dataUrl}" style="width:300px;height:300px;"/>`);
-                printWindow.document.close();
-                printWindow.print();
-            }
-        } else if (format === 'pdf') {
-            const pdf = new jsPDF();
-            pdf.addImage(dataUrl, 'PNG', 10, 10, 180, 180);
-            pdf.save('qr-code.pdf');
-        } else {
-            const link = document.createElement('a');
-            link.href = format === 'jpeg' ? canvas.toDataURL('image/jpeg') : canvas.toDataURL('image/png');
-            link.download = `qr-code.${format}`;
-            link.click();
+            // 2. Sukuriam Blob iš SVG
+            const blob = new Blob([svgText], { type: 'image/svg+xml' });
+            const blobUrl = URL.createObjectURL(blob);
+
+            // 3. Sukuriam Image iš Blob
+            const img = new Image();
+            img.src = blobUrl;
+
+            img.onload = async () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return;
+
+                ctx.drawImage(img, 0, 0);
+
+                if (format === 'print') {
+                    const printWindow = window.open('', '_blank');
+                    if (printWindow) {
+                        printWindow.document.write(`<img src="${canvas.toDataURL('image/png')}" style="width:300px;height:300px;"/>`);
+                        printWindow.document.close();
+                        printWindow.print();
+                    }
+                } else if (format === 'pdf') {
+                    const pdf = new jsPDF();
+                    const dataUrl = canvas.toDataURL('image/png');
+                    pdf.addImage(dataUrl, 'PNG', 10, 10, 180, 180);
+                    pdf.save('qr-code.pdf');
+                } else {
+                    const downloadLink = document.createElement('a');
+                    const mimeType = format === 'jpeg' ? 'image/jpeg' : 'image/png';
+                    downloadLink.href = canvas.toDataURL(mimeType);
+                    downloadLink.download = `qr-code.${format}`;
+                    downloadLink.click();
+                }
+                URL.revokeObjectURL(blobUrl); // išvalom blob'ą
+            };
+
+            img.onerror = () => {
+                console.error('Nepavyko įkelti SVG paveikslėlio.');
+            };
+        } catch (error) {
+            console.error('Error exporting:', error);
         }
 
         setAnchorEl(null);
     };
+
 
     const handleMenuClose = () => {
         setAnchorEl(null);
@@ -92,7 +121,6 @@ const QrViewDialog: React.FC<QrViewDialogProps> = ({ open, url, type, onClose })
             <DialogContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3 }}>
                 {url ? (
                     <Box
-                        ref={qrRef}
                         sx={{ width: 256, height: 256, display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2, bgcolor: 'white', p: 2 }}
                     >
                         <img
