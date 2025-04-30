@@ -36,7 +36,7 @@ export async function POST(request: Request) {
             },
             size: 1000,
             download: "imageUrl",
-            file: "svg"
+            file: "png"
         };
 
         const response = await axios.post(url, payload, {
