@@ -1,3 +1,4 @@
+// ✅ QrViewDialog.tsx
 import React from 'react';
 import {
   Box,
@@ -14,11 +15,11 @@ import { Close as CloseIcon } from '@mui/icons-material';
 
 type QrViewDialogProps = {
   open: boolean;
-  url: string | null;        // SVG preview URL (gautas per POST)
-  qrData: string;            // Tikras QR turinys (URL, tekstas ir pan.)
-  color: string;             // Spalva
-  logo?: string;             // Logotipo URL (jei yra)
-  body?: string;             // QR formos tipas (pvz. "square")
+  url: string | null;
+  qrData: string;
+  color: string;
+  logo?: string;
+  body?: string;
   type: 'positive' | 'negative';
   onClose: () => void;
 };
@@ -33,11 +34,31 @@ const QrViewDialog: React.FC<QrViewDialogProps> = ({
                                                      type,
                                                      onClose
                                                    }) => {
-  const navigateToQrUrl = () => {
-    if (url) {
-      window.open(url, '_blank');
-    }
-    onClose();
+  const downloadImage = (format: 'png' | 'jpeg') => {
+    const config = {
+      body: body || 'square',
+      eye: 'frame0',
+      eyeBall: 'ball0',
+      bodyColor: color,
+      bgColor: '#FFFFFF',
+      eye1Color: color,
+      eye2Color: color,
+      eye3Color: color,
+      eyeBall1Color: color,
+      eyeBall2Color: color,
+      eyeBall3Color: color,
+      logo: logo || '',
+      logoMode: logo ? 'default' : ''
+    };
+
+    const encodedData = encodeURIComponent(qrData);
+    const encodedConfig = encodeURIComponent(JSON.stringify(config));
+    const imageUrl = `https://api.qrcode-monkey.com/qr/custom?data=${encodedData}&config=${encodedConfig}&size=1000&file=${format}&download=true`;
+
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.download = `qr-code.${format}`;
+    link.click();
   };
 
   const downloadSvg = () => {
@@ -48,39 +69,8 @@ const QrViewDialog: React.FC<QrViewDialogProps> = ({
     link.click();
   };
 
-  const downloadPng = () => {
-    if (!qrData) return;
-
-    const config = {
-      body: body || "square",
-      eye: "frame0",
-      eyeBall: "ball0",
-      bodyColor: color || "#000000",
-      bgColor: "#FFFFFF",
-      eye1Color: color || "#000000",
-      eye2Color: color || "#000000",
-      eye3Color: color || "#000000",
-      eyeBall1Color: color || "#000000",
-      eyeBall2Color: color || "#000000",
-      eyeBall3Color: color || "#000000",
-      logo: logo || "",
-      logoMode: logo ? "default" : ""
-    };
-
-    const encodedData = encodeURIComponent(qrData);
-    const encodedConfig = encodeURIComponent(JSON.stringify(config));
-
-    const pngUrl = `https://api.qrcode-monkey.com/qr/custom?data=${encodedData}&config=${encodedConfig}&size=1000&file=png&download=true`;
-
-    const link = document.createElement('a');
-    link.href = pngUrl;
-    link.download = 'qr-code.png';
-    link.click();
-  };
-
   const printImage = () => {
     if (!url) return;
-
     const win = window.open('');
     if (!win) return;
 
@@ -137,14 +127,14 @@ const QrViewDialog: React.FC<QrViewDialogProps> = ({
             </Button>
             {url && (
                 <>
-                  <Button onClick={navigateToQrUrl} variant="contained" color="primary">
-                    View QR Image
-                  </Button>
                   <Button onClick={downloadSvg} variant="outlined">
                     Download SVG
                   </Button>
-                  <Button onClick={downloadPng} variant="outlined">
+                  <Button onClick={() => downloadImage('png')} variant="outlined">
                     Download PNG
+                  </Button>
+                  <Button onClick={() => downloadImage('jpeg')} variant="outlined">
+                    Download JPEG
                   </Button>
                   <Button onClick={printImage} variant="outlined">
                     Print / Save as PDF
