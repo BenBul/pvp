@@ -17,9 +17,17 @@ interface QuestionTemplateProps {
     chart1?: React.ReactNode;
     chart2?: React.ReactNode;
     chart3?: React.ReactNode;
+    customTable?: React.ReactNode;
 }
 
-const QuestionTemplate: React.FC<QuestionTemplateProps> = ({ headers, data, chart1, chart2, chart3 }) => {
+const QuestionTemplate: React.FC<QuestionTemplateProps> = ({ 
+    headers, 
+    data, 
+    chart1, 
+    chart2, 
+    chart3, 
+    customTable 
+}) => {
     return (
         <Box sx={{ p: { xs: 1, sm: 2 }, display: 'flex', flexDirection: 'column' }}>
             <Grid container spacing={2} sx={{ mb: 2 }}>
@@ -34,6 +42,8 @@ const QuestionTemplate: React.FC<QuestionTemplateProps> = ({ headers, data, char
                 </Grid>
             </Grid>
             <Paper sx={{ flex: 1, overflow: 'auto', p: 2 }}>
+                {customTable}
+                
                 <TableContainer>
                     <Table stickyHeader>
                         <TableHead>
