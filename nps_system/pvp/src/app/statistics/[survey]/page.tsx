@@ -18,9 +18,10 @@ import {
     Title,
     Tooltip,
     Legend,
-    Filler
+    Filler,
+    BubbleController
 } from 'chart.js';
-import { Pie, Bar } from 'react-chartjs-2';
+import { Pie, Bar, Bubble } from 'react-chartjs-2';
 
 ChartJS.register(
     CategoryScale,
@@ -32,7 +33,8 @@ ChartJS.register(
     Title,
     Tooltip,
     Legend,
-    Filler
+    Filler,
+    BubbleController
 );
 
 interface IQuestion {
@@ -164,11 +166,20 @@ export default function SurveyStatisticsPage() {
     const processRatingQuestionsData = () => {
         const ratingQuestions = questions.filter(q => q.type === 'rating');
         
-        const ratingData = ratingQuestions.map(question => {
+        // Process data for bubble chart
+        const ratingData = ratingQuestions.map((question, questionIndex) => {
             const questionAnswers = answers.filter(answer => 
                 answer.question_id === question.id && answer.rating !== null && answer.rating !== undefined
             );
             
+            // Count occurrences of each rating value
+            const ratingCounts = {};
+            questionAnswers.forEach(answer => {
+                const rating = answer.rating || 0;
+                ratingCounts[rating] = (ratingCounts[rating] || 0) + 1;
+            });
+            
+            // Calculate average rating for label display
             const totalRating = questionAnswers.reduce((sum, answer) => sum + (answer.rating || 0), 0);
             const avgRating = questionAnswers.length > 0 ? totalRating / questionAnswers.length : 0;
             
@@ -177,7 +188,9 @@ export default function SurveyStatisticsPage() {
                     ? question.description.substring(0, 20) + '...' 
                     : question.description,
                 averageRating: parseFloat(avgRating.toFixed(1)),
-                responseCount: questionAnswers.length
+                responseCount: questionAnswers.length,
+                ratingDistribution: ratingCounts,
+                xPosition: questionIndex, // X-axis position for the bubble chart
             };
         });
 
@@ -205,17 +218,27 @@ export default function SurveyStatisticsPage() {
         ],
     };
 
-    const ratingChartData = {
-        labels: ratingData.map(item => item.question),
-        datasets: [
-            {
-                label: 'Average Rating',
-                data: ratingData.map(item => item.averageRating),
-                backgroundColor: '#FFCE56', 
-                borderColor: '#FF9F40', 
-                borderWidth: 1,
-            }
-        ],
+    // Prepare bubble chart data
+    const bubbleChartData = {
+        datasets: ratingData.flatMap((item, questionIndex) => {
+            // Create bubbles for each rating value
+            const bubbles = [];
+            
+            // Get all rating values and their counts
+            Object.entries(item.ratingDistribution).forEach(([rating, count]) => {
+                bubbles.push({
+                    label: item.question,
+                    data: [{
+                        x: questionIndex, // X position based on question index
+                        y: parseInt(rating), // Y position is the rating value
+                        r: Math.min(Math.max(count as number * 3, 5), 30) // Radius based on count, with min/max limits
+                    }],
+                    backgroundColor: `hsla(${questionIndex * 50}, 70%, 60%, 0.7)`,
+                });
+            });
+            
+            return bubbles;
+        }),
     };
 
     const binaryOptions = {
@@ -258,11 +281,14 @@ export default function SurveyStatisticsPage() {
         },
     };
 
-    const ratingOptions = {
+    const bubbleOptions = {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
             x: {
+                type: 'category',
+                position: 'bottom',
+                labels: ratingData.map(item => item.question),
                 ticks: {
                     maxRotation: 45,
                     minRotation: 45
@@ -270,30 +296,32 @@ export default function SurveyStatisticsPage() {
             },
             y: {
                 beginAtZero: true,
-                max: 10, 
+                max: 10,
                 title: {
-                    display: false
+                    display: true,
+                    text: 'Rating Value'
                 }
             }
         },
         plugins: {
             legend: {
-                position: 'top' as const,
-                align: 'start',
-                labels: {
-                    boxWidth: 12,
-                    padding: 10
-                }
-            },
-            title: {
-                display: false,
+                display: false
             },
             tooltip: {
                 callbacks: {
-                    afterTitle: function(context) {
+                    title: function(context) {
                         const dataIndex = context[0].dataIndex;
-                        const responseCount = ratingData[dataIndex].responseCount;
-                        return `Responses: ${responseCount}`;
+                        const datasetIndex = context[0].datasetIndex;
+                        const question = ratingData[context[0].raw.x].question;
+                        return `Question: ${question}`;
+                    },
+                    label: function(context) {
+                        const value = context.raw;
+                        return [
+                            `Rating: ${value.y}`,
+                            `Count: ${Math.round(value.r / 3)}`,
+                            `Avg Rating: ${ratingData[value.x].averageRating}`
+                        ];
                     }
                 }
             }
@@ -318,10 +346,10 @@ export default function SurveyStatisticsPage() {
             }
             chart2={
                 <Box sx={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <h3 style={{ margin: '0 0 10px 0' }}>Rating Questions - Average Ratings</h3>
+                    <h3 style={{ margin: '0 0 10px 0' }}>Rating Questions - Response Distribution</h3>
                     {ratingData.length > 0 ? (
                         <div style={{ flex: 1 }}>
-                            <Bar data={ratingChartData} options={ratingOptions} />
+                            <Bubble data={bubbleChartData} options={bubbleOptions} />
                         </div>
                     ) : (
                         <p>No rating questions available</p>
