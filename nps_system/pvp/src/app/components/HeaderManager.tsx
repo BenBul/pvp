@@ -9,24 +9,24 @@ export default function HeaderManager() {
 
   if (pathname === '/') {
     return (
-        <Navigation
-            onScrollTo={(id: string) => {
-              const element = document.getElementById(id);
-              if (element) {
-                element.scrollIntoView({ behavior: 'smooth' });
-              }
-            }}
-        />
+      <Navigation
+        onScrollToAction={(id: string) => {
+          const element = document.getElementById(id);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
+        }}
+      />
     );
   }
 
   if (
-      pathname.startsWith('/survey') ||
-      pathname.startsWith('/statistics') ||
-      pathname.startsWith('/profile')
+    pathname.startsWith('/survey') ||
+    pathname.startsWith('/statistics') ||
+    pathname.startsWith('/profile')
   ) {
     return <SurveyHeader />;
   }
 
-  return null; // Don't show any header on other pages (like /login, /register, etc.)
+  return null;
 }
