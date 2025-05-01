@@ -75,6 +75,7 @@ export default function SurveyPage() {
             entries (*)
           `)
           .eq('survey_id', surveyId)
+          .eq('is_deleted', false)
           .order('created_at', { ascending: false });
 
         if (questionsError) throw questionsError;

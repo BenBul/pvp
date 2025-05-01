@@ -46,16 +46,9 @@ const DeleteQuestionDialog: React.FC<DeleteQuestionDialogProps> = ({
     setError("");
 
     try {
-      const { error: entriesDeleteError } = await supabase
-        .from('entries')
-        .delete()
-        .eq('question_id', questionId);
-
-      if (entriesDeleteError) throw entriesDeleteError;
-      
       const { error: questionDeleteError } = await supabase
         .from('questions')
-        .delete()
+        .update({ is_deleted: true })
         .eq('id', questionId);
 
       if (questionDeleteError) throw questionDeleteError;
