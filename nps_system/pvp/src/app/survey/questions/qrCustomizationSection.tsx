@@ -1,9 +1,7 @@
-import { Box, Button, FormControlLabel, Grid, Input, MenuItem, Paper, Select, Switch, TextField, Typography } from "@mui/material";
+import { Box, FormControlLabel, Grid, Input, MenuItem, Paper, Select, Switch, TextField, Typography, CircularProgress } from "@mui/material";
 import { 
-    QrCode as QrCodeIcon,
     Image as LogoIcon
-
- } from "@mui/icons-material";
+} from "@mui/icons-material";
 
 type QrCustomizationOptions = {
     color: string;
@@ -17,25 +15,21 @@ type QrCustomizationSectionProps = {
     setOptions: (options: QrCustomizationOptions) => void;
     type: 'positive' | 'negative';
     previewUrl: string | null;
-    onPreviewClick: () => void;
+    isLoading: boolean;
 };
 
-
-const QrCustomizationSection:React.FC<QrCustomizationSectionProps> = ({ options, setOptions, type, previewUrl, onPreviewClick }) => (
+const QrCustomizationSection: React.FC<QrCustomizationSectionProps> = ({ 
+  options, 
+  setOptions, 
+  type, 
+  previewUrl, 
+  isLoading 
+}) => (
     <Paper elevation={0} sx={{ p: 2, mb: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="subtitle1" fontWeight="medium">
           {type === 'positive' ? 'Positive' : 'Negative'} Response QR
         </Typography>
-        <Button
-          onClick={onPreviewClick}
-          variant="outlined"
-          size="small"
-          startIcon={<QrCodeIcon />}
-          color={type === 'positive' ? 'success' : 'error'}
-        >
-          Preview QR
-        </Button>
       </Box>
       
       <Grid container spacing={2}>
@@ -119,19 +113,43 @@ const QrCustomizationSection:React.FC<QrCustomizationSectionProps> = ({ options,
         )}
       </Grid>
       
-      {previewUrl && (
-        <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', borderTop: '1px solid #eee', pt: 2 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ mb: 1 }}>
-            QR Code Preview
-          </Typography>
+      <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', borderTop: '1px solid #eee', pt: 2 }}>
+        <Typography variant="caption" color="text.secondary" sx={{ mb: 1 }}>
+          QR Code Preview
+        </Typography>
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: 128, height: 128 }}>
+            <CircularProgress 
+              size={36} 
+              color={type === 'positive' ? 'success' : 'error'} 
+            />
+          </Box>
+        ) : previewUrl ? (
           <Box 
             component="img" 
             src={previewUrl} 
             alt={`${type === 'positive' ? 'Positive' : 'Negative'} QR Preview`} 
             sx={{ width: 128, height: 128, objectFit: 'contain' }}
           />
-        </Box>
-      )}
+        ) : (
+          <Box 
+            sx={{ 
+              width: 128, 
+              height: 128, 
+              border: '1px dashed #ccc',
+              borderRadius: 1,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+          >
+            <Typography variant="caption" color="text.secondary">
+              No preview
+            </Typography>
+          </Box>
+        )}
+      </Box>
     </Paper>
   );
-  export default QrCustomizationSection;
+
+export default QrCustomizationSection;
