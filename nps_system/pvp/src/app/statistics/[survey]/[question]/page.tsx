@@ -19,7 +19,7 @@ import {
     Legend,
     Filler
 } from 'chart.js';
-import {Box} from "@mui/material";
+import { Box } from "@mui/material";
 
 ChartJS.register(
     CategoryScale,
@@ -213,25 +213,27 @@ export default function QuestionStatistics() {
 
     if (questionType === 'binary') {
         return (
-            <QuestionTemplate
-                headers={headers}
-                data={tableData}
-                chart1={
-                    <Box sx={{ width: '100%', maxWidth: 400 }}>
-                        {renderBinaryPieChart()}
-                    </Box>
-                }
-                chart2={
-                    <Box sx={{ width: '100%', height: '100%' }}>
-                        <Line data={lineChartData} options={options} />
-                    </Box>
-                }
-                chart3={
-                    <Box sx={{ height: '100%', width: '100%'}}>
-                        <Bar data={barChartData} options={options} />
-                    </Box>
-                }
-            />
+            <Box sx={{ marginLeft: '240px', padding: 2 }}> {/* Atitraukiam nuo sidebar */}
+                <QuestionTemplate
+                    headers={headers}
+                    data={tableData}
+                    chart1={
+                        <Box sx={{ width: '100%', maxWidth: 400 }}>
+                            {renderBinaryPieChart()}
+                        </Box>
+                    }
+                    chart2={
+                        <Box sx={{ width: '100%', minHeight: 300 }}>
+                            <Line data={lineChartData} options={options} />
+                        </Box>
+                    }
+                    chart3={
+                        <Box sx={{ width: '100%', minHeight: 300 }}>
+                            <Bar data={barChartData} options={options} />
+                        </Box>
+                    }
+                />
+            </Box>
         );
     }
 }

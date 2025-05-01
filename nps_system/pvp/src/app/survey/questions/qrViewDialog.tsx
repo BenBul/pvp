@@ -1,17 +1,12 @@
-// src/app/survey/questions/QrViewDialog.tsx
-import React, { useRef } from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import {
-    Box,
-    Button,
-    Typography,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    IconButton,
-    CircularProgress
+    Box, Button, Typography, Dialog, DialogActions,
+    DialogContent, DialogTitle, IconButton, CircularProgress,
+    Menu, MenuItem, Snackbar, Alert
 } from '@mui/material';
-import { Close as CloseIcon } from '@mui/icons-material';
+import { Close as CloseIcon, Download as DownloadIcon, Print as PrintIcon } from '@mui/icons-material';
 
 type QrViewDialogProps = {
     open: boolean;
@@ -21,125 +16,157 @@ type QrViewDialogProps = {
 };
 
 const QrViewDialog: React.FC<QrViewDialogProps> = ({ open, url, type, onClose }) => {
-    const qrImageRef = useRef<HTMLImageElement | null>(null);
+    const fixedUrl = url?.startsWith('//') ? `https:${url}` : url;
+    const proxiedUrl = fixedUrl ? `/api/qr-proxy?url=${encodeURIComponent(fixedUrl)}` : null;
 
-    const proxiedUrl = url ? `/api/qr-proxy?url=${encodeURIComponent(url)}` : null;
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMsg, setSnackbarMsg] = useState('');
 
-    const downloadQrCode = () => {
-        if (!proxiedUrl || !qrImageRef.current) return;
+    const menuOpen = Boolean(anchorEl);
 
+    const handleDownloadMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleCloseMenu = () => {
+        setAnchorEl(null);
+    };
+
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false);
+    };
+
+    const showSnackbar = (msg: string) => {
+        setSnackbarMsg(msg);
+        setSnackbarOpen(true);
+    };
+
+    const downloadImage = async (format: 'png' | 'jpeg') => {
+        if (!proxiedUrl) return;
         try {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            if (!ctx) throw new Error('Canvas context error');
+            const response = await fetch(proxiedUrl);
+            const blob = await response.blob();
 
-            const img = qrImageRef.current;
-            canvas.width = img.naturalWidth || 300;
-            canvas.height = img.naturalHeight || 300;
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            const img = new Image();
+            const loadImage = new Promise<void>((resolve, reject) => {
+                img.onload = () => resolve();
+                img.onerror = () => reject(new Error('Failed to load QR image'));
+            });
+
+            img.src = URL.createObjectURL(blob);
+            await loadImage;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) throw new Error('Canvas context is null');
+
+            if (format === 'jpeg') {
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
             ctx.drawImage(img, 0, 0);
 
-            const dataUrl = canvas.toDataURL('image/png');
-            const a = document.createElement('a');
-            a.href = dataUrl;
-            a.download = `${type}-qr-code.png`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            canvas.toBlob((convertedBlob) => {
+                if (!convertedBlob) return;
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(convertedBlob);
+                link.download = `${type}-qr-code.${format}`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showSnackbar(`QR Code downloaded as ${format.toUpperCase()}`);
+            }, format === 'png' ? 'image/png' : 'image/jpeg', 0.95);
         } catch (error) {
-            console.error('Error downloading QR code:', error);
-            alert('Failed to download QR code. Please try a screenshot instead.');
+            console.error('Download error:', error);
+            alert('Failed to download QR code.');
         }
+        handleCloseMenu();
     };
 
     const printQrCode = () => {
-        if (!proxiedUrl || !qrImageRef.current) return;
+        if (!proxiedUrl) return;
+        const win = window.open('', '_blank');
+        if (!win) return;
 
-        try {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            if (!ctx) throw new Error('Canvas context error');
+        win.document.write(`
+      <html>
+        <head>
+          <title>Print QR Code</title>
+          <style>
+            body { display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+            img { max-width: 90%; max-height: 90%; }
+          </style>
+        </head>
+        <body>
+          <img src="${proxiedUrl}" onload="window.print(); window.close();" />
+        </body>
+      </html>
+    `);
+        win.document.close();
+    };
 
-            const img = qrImageRef.current;
-            canvas.width = img.naturalWidth || 300;
-            canvas.height = img.naturalHeight || 300;
-            ctx.fillStyle = 'white';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0);
-
-            const dataUrl = canvas.toDataURL('image/png');
-            const printWindow = window.open('', '_blank');
-            if (!printWindow) throw new Error('Print window error');
-
-            printWindow.document.write(`
-        <html>
-          <head>
-            <title>Print QR Code</title>
-            <style>
-              body { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: Arial; }
-              h2 { margin-bottom: 20px; }
-              img { max-width: 80%; max-height: 70vh; margin-bottom: 20px; }
-              @media print { @page { size: auto; margin: 1cm; } .no-print { display: none !important; } }
-            </style>
-          </head>
-          <body>
-            <h2>${type === 'positive' ? 'Positive' : 'Negative'} Response QR Code</h2>
-            <img src="${dataUrl}" alt="QR Code">
-            <div class="no-print" style="margin-top: 20px;">
-              <button onclick="window.print();">Print</button>
-              <button onclick="window.close();">Close</button>
-            </div>
-          </body>
-        </html>
-      `);
-
-            printWindow.document.close();
-        } catch (error) {
-            console.error('Print error:', error);
-            alert('Failed to print QR code.');
-        }
+    const navigateToQrUrl = () => {
+        if (fixedUrl) window.open(fixedUrl, '_blank');
+        onClose();
     };
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-            <DialogTitle>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Box component="span">{type === 'positive' ? 'Positive' : 'Negative'} Response QR Code</Box>
-                    <IconButton onClick={onClose} size="small">
-                        <CloseIcon />
-                    </IconButton>
-                </Box>
-            </DialogTitle>
-
-            <DialogContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 3 }}>
-                {proxiedUrl ? (
-                    <Box
-                        component="img"
-                        src={proxiedUrl}
-                        alt={`${type} QR Code`}
-                        ref={qrImageRef}
-                        sx={{ width: 256, height: 256, objectFit: 'contain', mb: 2 }}
-                    />
-                ) : (
-                    <Box sx={{ p: 4, textAlign: 'center' }}>
-                        <CircularProgress size={40} sx={{ mb: 2 }} />
-                        <Typography color="text.secondary">Loading QR code...</Typography>
+        <>
+            <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+                <DialogTitle>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>{type === 'positive' ? 'Positive' : 'Negative'} Response QR Code</span>
+                        <IconButton onClick={onClose}><CloseIcon /></IconButton>
                     </Box>
-                )}
-            </DialogContent>
+                </DialogTitle>
 
-            <DialogActions sx={{ p: 2 }}>
-                <Button onClick={onClose} variant="outlined" color="inherit">Close</Button>
-                {url && (
-                    <>
-                        <Button onClick={downloadQrCode} variant="contained" color="primary">Download</Button>
-                        <Button onClick={printQrCode} variant="contained" color="secondary">Print</Button>
-                        <Button onClick={() => window.open(url, '_blank')} variant="outlined">View Image</Button>
-                    </>
-                )}
-            </DialogActions>
-        </Dialog>
+                <DialogContent sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
+                    {proxiedUrl ? (
+                        <Box
+                            component="img"
+                            src={proxiedUrl}
+                            alt={`${type} QR Code`}
+                            sx={{ width: 256, height: 256, objectFit: 'contain' }}
+                        />
+                    ) : (
+                        <Box sx={{ textAlign: 'center' }}>
+                            <CircularProgress sx={{ mb: 2 }} />
+                            <Typography color="text.secondary">Loading QR code...</Typography>
+                        </Box>
+                    )}
+                </DialogContent>
+
+                <DialogActions sx={{ justifyContent: 'center', flexWrap: 'wrap', gap: 1 }}>
+                    <Button onClick={onClose} variant="outlined" color="inherit">Close</Button>
+                    {proxiedUrl && (
+                        <>
+                            <Button onClick={navigateToQrUrl} variant="outlined">View QR Image</Button>
+                            <Button variant="contained" color="primary" startIcon={<DownloadIcon />} onClick={handleDownloadMenu}>
+                                Download
+                            </Button>
+                            <Menu anchorEl={anchorEl} open={menuOpen} onClose={handleCloseMenu}>
+                                <MenuItem onClick={() => downloadImage('png')}>Download PNG</MenuItem>
+                                <MenuItem onClick={() => downloadImage('jpeg')}>Download JPEG</MenuItem>
+                            </Menu>
+                            <Button variant="outlined" color="secondary" startIcon={<PrintIcon />} onClick={printQrCode}>
+                                Print / Save PDF
+                            </Button>
+                        </>
+                    )}
+                </DialogActions>
+            </Dialog>
+
+            <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleSnackbarClose}>
+                <Alert onClose={handleSnackbarClose} severity="success" variant="filled">
+                    {snackbarMsg}
+                </Alert>
+            </Snackbar>
+        </>
     );
 };
 
