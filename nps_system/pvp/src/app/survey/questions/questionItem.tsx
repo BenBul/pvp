@@ -3,9 +3,14 @@ import {
   Box, 
   Button, 
   Typography, 
-  Divider 
+  Divider,
+  IconButton,
+  Tooltip
 } from '@mui/material';
-import { QrCode as QrCodeIcon } from '@mui/icons-material';
+import { 
+  QrCode as QrCodeIcon,
+  Delete as DeleteIcon
+} from '@mui/icons-material';
 
 type Entry = {
   id: string;
@@ -25,13 +30,20 @@ type Question = {
 };
 
 type QuestionItemProps = {
-  question: Question; // Define the type of the 'question' prop
+  question: Question;
   isLast: boolean;
   showDivider: boolean;
   onOpenQrDialog: (url: string, type: 'positive' | 'negative') => void;
+  onDeleteQuestion: (questionId: string, description: string) => void;
 };
 
-const QuestionItem: React.FC<QuestionItemProps> = ({ question, isLast, showDivider, onOpenQrDialog }) => {
+const QuestionItem: React.FC<QuestionItemProps> = ({ 
+  question, 
+  isLast, 
+  showDivider, 
+  onOpenQrDialog,
+  onDeleteQuestion
+}) => {
   const positiveEntry = question.entries?.find(e => e.value === "positive");
   const negativeEntry = question.entries?.find(e => e.value === "negative");
   
@@ -51,10 +63,22 @@ const QuestionItem: React.FC<QuestionItemProps> = ({ question, isLast, showDivid
         }}
       >
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Box>
-            <Typography variant="h6" fontWeight="medium" gutterBottom>
-              {question.description}
-            </Typography>
+          <Box sx={{ flex: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Typography variant="h6" fontWeight="medium" gutterBottom>
+                {question.description}
+              </Typography>
+              <Tooltip title="Delete question">
+                <IconButton 
+                  size="small" 
+                  color="error" 
+                  sx={{ ml: 1 }}
+                  onClick={() => onDeleteQuestion(question.id, question.description)}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </Tooltip>
+            </Box>
             <Typography variant="caption" color="text.secondary">
               Created: {formatDate(question.created_at)}
             </Typography>

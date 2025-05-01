@@ -96,6 +96,10 @@ export default function SurveyPage() {
     setQuestions([newQuestion, ...questions]);
   };
 
+  const handleQuestionDeleted = (questionId: string) => {
+    setQuestions(questions.filter(question => question.id !== questionId));
+  };
+
   const openAddModal = () => {
     setShowAddModal(true);
     document.body.style.overflow = 'hidden';
@@ -143,6 +147,7 @@ export default function SurveyPage() {
         isLoading={isLoading}
         onAddQuestion={openAddModal}
         onOpenQrDialog={openQrDialog}
+        onQuestionDeleted={handleQuestionDeleted}
       />
 
       <AddQuestionModal
