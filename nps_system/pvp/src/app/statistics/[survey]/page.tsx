@@ -61,6 +61,7 @@ interface IQuestion {
     id: string;
     description: string;
     type: string;
+    isDeleted: boolean;
 }
 
 interface IAnswer {
@@ -147,7 +148,7 @@ export default function SurveyStatisticsPage() {
         try {
             const { data, error } = await supabase
                 .from('questions')
-                .select('id, description, type')
+                .select('id, description, type, isDeleted:is_deleted')
                 .eq('survey_id', survey)
                 .returns<IQuestion[]>();
             if (error) {
@@ -515,7 +516,9 @@ export default function SurveyStatisticsPage() {
                     {questions.map((question) => (
                         <ListItem key={question.id}>
                             <ListItemButton onClick={() => handleOpenQuestionStatistics(question.id)}>
-                                <ListItemText primary={question.description} secondary={question.type} />
+                                <ListItemText primary={question.description} secondary={question.type}  />
+                                {/* is Deleted chip */}
+                                {question.isDeleted && <Chip label="Deleted" color="error" size="small" sx={{ ml: 1 }} />}
                             </ListItemButton>
                         </ListItem>
                     ))}
