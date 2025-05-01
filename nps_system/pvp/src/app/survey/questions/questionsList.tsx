@@ -10,7 +10,8 @@ import {
 } from '@mui/material';
 import { 
   Add as AddIcon,
-  Warning as AlertIcon 
+  Warning as AlertIcon,
+  SearchOff as NoResultsIcon
 } from '@mui/icons-material';
 
 import QuestionItem from './questionItem';
@@ -81,17 +82,29 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
             </Box>
           ) : questions.length === 0 ? (
             <Box sx={{ p: 4, textAlign: 'center' }}>
-              <AlertIcon color="action" sx={{ fontSize: 40, mb: 2 }} />
-              <Typography color="text.secondary">No questions created yet</Typography>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<AddIcon />}
-                onClick={onAddQuestion}
-                sx={{ mt: 2 }}
-              >
-                Add Your First Question
-              </Button>
+              {questions.length === 0 ? (
+                <>
+                  <AlertIcon color="action" sx={{ fontSize: 40, mb: 2 }} />
+                  <Typography color="text.secondary">No questions created yet</Typography>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<AddIcon />}
+                    onClick={onAddQuestion}
+                    sx={{ mt: 2 }}
+                  >
+                    Add Your First Question
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <NoResultsIcon color="action" sx={{ fontSize: 40, mb: 2 }} />
+                  <Typography color="text.secondary">No matching questions found</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                    Try adjusting your search criteria
+                  </Typography>
+                </>
+              )}
             </Box>
           ) : (
             <Box 

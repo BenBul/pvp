@@ -7,11 +7,13 @@ import {
   Typography,
   Button,
   Container,
-  Pagination
+  Pagination,
+  TextField,
+  InputAdornment
 } from '@mui/material';
 import {
   Add as AddIcon,
-  BarChart as BarChartIcon
+  Search as SearchIcon
 } from '@mui/icons-material';
 import FormDrawer from '@/app/components/dashboard/surveys/FormDrawer';
 import SurveyItemsList from '@/app/components/dashboard/surveys/SurveyItemList';
@@ -37,10 +39,12 @@ export default function SurveysPage() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [surveyItems, setSurveyItems] = useState<SurveyItem[]>([]);
+  const [filteredItems, setFilteredItems] = useState<SurveyItem[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [refresh, setRefresh] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const pageSize = 10;
 
   useEffect(() => {
@@ -101,10 +105,12 @@ export default function SurveysPage() {
         });
 
         setSurveyItems(surveyItems);
+        setFilteredItems(surveyItems);
         setTotalPages(Math.ceil((totalItems || 0) / pageSize));
       } catch (error) {
         console.error('Error fetching survey items or answers:', error);
         setSurveyItems([]);
+        setFilteredItems([]);
       } finally {
         setLoading(false);
         setRefresh(false);
@@ -114,12 +120,27 @@ export default function SurveysPage() {
     fetchData();
   }, [page, refresh]);
 
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredItems(surveyItems);
+    } else {
+      const filtered = surveyItems.filter(item => 
+        item.title.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredItems(filtered);
+    }
+  }, [searchQuery, surveyItems]);
+
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
   };
 
   const handleSurveyClick = (surveyId: string) => {
     router.push(`/survey/${surveyId}`);
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
   };
 
   return (
@@ -153,21 +174,33 @@ export default function SurveysPage() {
                   refreshItems={() => setRefresh(true)}
               />
 
-              <Box sx={{ display: 'flex', gap: 2, mb: 6, mt: 9, justifyContent: 'center' }}>
-                <Button variant="contained" startIcon={<BarChartIcon />} sx={{ borderRadius: 28, bgcolor: '#a29bfe' }}>
-                  Rate
-                </Button>
-                <Button variant="contained" startIcon={<BarChartIcon />} sx={{ borderRadius: 28, bgcolor: '#a29bfe' }}>
-                  Positive feedback
-                </Button>
-                <Button variant="outlined" sx={{ borderRadius: 28, color: '#6c5ce7', borderColor: '#6c5ce7' }}>
-                  Negative feedback
-                </Button>
+              <Box sx={{ mb: 6, mt: 9, width: '100%' }}>
+                <TextField
+                  fullWidth
+                  placeholder="Search surveys by title..."
+                  variant="outlined"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                    sx: { 
+                      borderRadius: 28,
+                      bgcolor: '#f5f5f5',
+                      '&:hover': {
+                        bgcolor: '#f0f0f0'
+                      }
+                    }
+                  }}
+                />
               </Box>
 
-              <SurveyItemsList items={surveyItems} loading={loading} onSurveyClick={handleSurveyClick} />
+              <SurveyItemsList items={filteredItems} loading={loading} onSurveyClick={handleSurveyClick} />
 
-              {surveyItems.length > 0 && (
+              {filteredItems.length > 0 && (
                   <Box sx={{ mt: 4, width: '100%', display: 'flex', justifyContent: 'center', bgcolor: '#f5f0ff', py: 3 }}>
                     <Pagination
                         count={totalPages}

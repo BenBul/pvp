@@ -1,9 +1,31 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import StatisticsTemplate from '@/app/components/dashboard/statistics/Template';
-import { List, ListItem, ListItemButton, ListItemText, Box } from '@mui/material';
+import { 
+  List, 
+  ListItem,
+  ListItemButton, 
+  ListItemText, 
+  Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  TextField,
+  Stack,
+  Chip,
+  Grid,
+  Typography,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow
+} from '@mui/material';
 import { supabase } from '@/supabase/client';
 import LoadingBox from '@/app/components/LoadingBox';
 import { useRouter } from "next/navigation";
@@ -18,10 +40,9 @@ import {
     Title,
     Tooltip,
     Legend,
-    Filler,
-    BubbleController
+    Filler
 } from 'chart.js';
-import { Pie, Bar, Bubble } from 'react-chartjs-2';
+import { Pie, Bar } from 'react-chartjs-2';
 
 ChartJS.register(
     CategoryScale,
@@ -33,8 +54,7 @@ ChartJS.register(
     Title,
     Tooltip,
     Legend,
-    Filler,
-    BubbleController
+    Filler
 );
 
 interface IQuestion {
@@ -51,12 +71,25 @@ interface IAnswer {
     input?: string;
 }
 
+interface TableData {
+    question: string;
+    created_at: string;
+    ispositive: string;
+    rating: number | string;
+    input: string;
+}
+
 export default function SurveyStatisticsPage() {
     const { survey } = useParams();
     const [questions, setQuestions] = useState<IQuestion[]>([]);
     const [answers, setAnswers] = useState<IAnswer[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
+    
+    // Filter states
+    const [ratingFilter, setRatingFilter] = useState<string>('all');
+    const [responseFilter, setResponseFilter] = useState<string>('all');
+    const [questionFilter, setQuestionFilter] = useState<string>('');
 
     const headers = [
         { key: 'question', label: 'Question' },
@@ -75,11 +108,40 @@ export default function SurveyStatisticsPage() {
         return {
             question,
             created_at: new Date(answer.created_at).toLocaleString(),
-            ispositive: answer.ispositive ? 'Yes' : 'No',
-            rating: answer.rating || 'N/A',
+            ispositive: answer.ispositive !== undefined ? (answer.ispositive ? 'Yes' : 'No') : 'N/A',
+            rating: answer.rating !== undefined ? answer.rating : 'N/A',
             input: answer.input || 'N/A',
+            question_id: answer.question_id,
         };
     });
+
+    // Apply filters to the table data
+    const filteredTableData = useMemo(() => {
+        return tableData.filter(item => {
+            // Filter by rating
+            if (ratingFilter !== 'all') {
+                if (item.rating === 'N/A') return false;
+                const rating = Number(item.rating);
+                
+                if (ratingFilter === '1-3' && (rating < 1 || rating > 3)) return false;
+                if (ratingFilter === '4-7' && (rating < 4 || rating > 7)) return false;
+                if (ratingFilter === '8-10' && (rating < 8 || rating > 10)) return false;
+            }
+            
+            // Filter by positive/negative response
+            if (responseFilter !== 'all') {
+                if (responseFilter === 'positive' && item.ispositive !== 'Yes') return false;
+                if (responseFilter === 'negative' && item.ispositive !== 'No') return false;
+            }
+            
+            // Filter by question text
+            if (questionFilter && !item.question.toLowerCase().includes(questionFilter.toLowerCase())) {
+                return false;
+            }
+            
+            return true;
+        });
+    }, [tableData, ratingFilter, responseFilter, questionFilter]);
 
     const getQuestions = async () => {
         try {
@@ -166,20 +228,11 @@ export default function SurveyStatisticsPage() {
     const processRatingQuestionsData = () => {
         const ratingQuestions = questions.filter(q => q.type === 'rating');
         
-        // Process data for bubble chart
-        const ratingData = ratingQuestions.map((question, questionIndex) => {
+        const ratingData = ratingQuestions.map(question => {
             const questionAnswers = answers.filter(answer => 
                 answer.question_id === question.id && answer.rating !== null && answer.rating !== undefined
             );
             
-            // Count occurrences of each rating value
-            const ratingCounts = {};
-            questionAnswers.forEach(answer => {
-                const rating = answer.rating || 0;
-                ratingCounts[rating] = (ratingCounts[rating] || 0) + 1;
-            });
-            
-            // Calculate average rating for label display
             const totalRating = questionAnswers.reduce((sum, answer) => sum + (answer.rating || 0), 0);
             const avgRating = questionAnswers.length > 0 ? totalRating / questionAnswers.length : 0;
             
@@ -188,9 +241,7 @@ export default function SurveyStatisticsPage() {
                     ? question.description.substring(0, 20) + '...' 
                     : question.description,
                 averageRating: parseFloat(avgRating.toFixed(1)),
-                responseCount: questionAnswers.length,
-                ratingDistribution: ratingCounts,
-                xPosition: questionIndex, // X-axis position for the bubble chart
+                responseCount: questionAnswers.length
             };
         });
 
@@ -218,27 +269,17 @@ export default function SurveyStatisticsPage() {
         ],
     };
 
-    // Prepare bubble chart data
-    const bubbleChartData = {
-        datasets: ratingData.flatMap((item, questionIndex) => {
-            // Create bubbles for each rating value
-            const bubbles = [];
-            
-            // Get all rating values and their counts
-            Object.entries(item.ratingDistribution).forEach(([rating, count]) => {
-                bubbles.push({
-                    label: item.question,
-                    data: [{
-                        x: questionIndex, // X position based on question index
-                        y: parseInt(rating), // Y position is the rating value
-                        r: Math.min(Math.max(count as number * 3, 5), 30) // Radius based on count, with min/max limits
-                    }],
-                    backgroundColor: `hsla(${questionIndex * 50}, 70%, 60%, 0.7)`,
-                });
-            });
-            
-            return bubbles;
-        }),
+    const ratingChartData = {
+        labels: ratingData.map(item => item.question),
+        datasets: [
+            {
+                label: 'Average Rating',
+                data: ratingData.map(item => item.averageRating),
+                backgroundColor: '#FFCE56', 
+                borderColor: '#FF9F40', 
+                borderWidth: 1,
+            }
+        ],
     };
 
     const binaryOptions = {
@@ -281,14 +322,11 @@ export default function SurveyStatisticsPage() {
         },
     };
 
-    const bubbleOptions = {
+    const ratingOptions = {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
             x: {
-                type: 'category',
-                position: 'bottom',
-                labels: ratingData.map(item => item.question),
                 ticks: {
                     maxRotation: 45,
                     minRotation: 45
@@ -296,42 +334,158 @@ export default function SurveyStatisticsPage() {
             },
             y: {
                 beginAtZero: true,
-                max: 10,
+                max: 10, 
                 title: {
-                    display: true,
-                    text: 'Rating Value'
+                    display: false
                 }
             }
         },
         plugins: {
             legend: {
-                display: false
+                position: 'top' as const,
+                align: 'start',
+                labels: {
+                    boxWidth: 12,
+                    padding: 10
+                }
+            },
+            title: {
+                display: false,
             },
             tooltip: {
                 callbacks: {
-                    title: function(context) {
+                    afterTitle: function(context) {
                         const dataIndex = context[0].dataIndex;
-                        const datasetIndex = context[0].datasetIndex;
-                        const question = ratingData[context[0].raw.x].question;
-                        return `Question: ${question}`;
-                    },
-                    label: function(context) {
-                        const value = context.raw;
-                        return [
-                            `Rating: ${value.y}`,
-                            `Count: ${Math.round(value.r / 3)}`,
-                            `Avg Rating: ${ratingData[value.x].averageRating}`
-                        ];
+                        const responseCount = ratingData[dataIndex].responseCount;
+                        return `Responses: ${responseCount}`;
                     }
                 }
             }
         },
     };
 
+    const filterControls = (
+        <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
+            <Typography variant="h6" gutterBottom>
+                Filter Responses
+            </Typography>
+            <Grid container spacing={2} alignItems="center">
+                <Grid item xs={12} md={4}>
+                    <FormControl fullWidth size="small">
+                        <InputLabel id="rating-filter-label">Rating</InputLabel>
+                        <Select
+                            labelId="rating-filter-label"
+                            id="rating-filter"
+                            value={ratingFilter}
+                            label="Rating"
+                            onChange={(e) => setRatingFilter(e.target.value)}
+                        >
+                            <MenuItem value="all">All Ratings</MenuItem>
+                            <MenuItem value="1-3">Low (1-3)</MenuItem>
+                            <MenuItem value="4-7">Medium (4-7)</MenuItem>
+                            <MenuItem value="8-10">High (8-10)</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                    <FormControl fullWidth size="small">
+                        <InputLabel id="response-filter-label">Response</InputLabel>
+                        <Select
+                            labelId="response-filter-label"
+                            id="response-filter"
+                            value={responseFilter}
+                            label="Response"
+                            onChange={(e) => setResponseFilter(e.target.value)}
+                        >
+                            <MenuItem value="all">All Responses</MenuItem>
+                            <MenuItem value="positive">Positive</MenuItem>
+                            <MenuItem value="negative">Negative</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                    <TextField
+                        fullWidth
+                        id="question-filter"
+                        label="Search Questions"
+                        variant="outlined"
+                        size="small"
+                        value={questionFilter}
+                        onChange={(e) => setQuestionFilter(e.target.value)}
+                    />
+                </Grid>
+            </Grid>
+            
+            <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {ratingFilter !== 'all' && (
+                    <Chip 
+                        label={`Rating: ${ratingFilter}`} 
+                        onDelete={() => setRatingFilter('all')} 
+                        color="primary" 
+                        variant="outlined" 
+                        size="small"
+                    />
+                )}
+                {responseFilter !== 'all' && (
+                    <Chip 
+                        label={`Response: ${responseFilter === 'positive' ? 'Positive' : 'Negative'}`} 
+                        onDelete={() => setResponseFilter('all')} 
+                        color="primary" 
+                        variant="outlined" 
+                        size="small"
+                    />
+                )}
+                {questionFilter && (
+                    <Chip 
+                        label={`Search: ${questionFilter}`} 
+                        onDelete={() => setQuestionFilter('')} 
+                        color="primary" 
+                        variant="outlined" 
+                        size="small"
+                    />
+                )}
+            </Box>
+        </Paper>
+    );
+
+    const CustomTable = (
+        <>
+            {filterControls}
+            <TableContainer>
+                <Table stickyHeader>
+                    <TableHead>
+                        <TableRow>
+                            {headers.map((header) => (
+                                <TableCell
+                                    key={header.key}
+                                    sx={{
+                                        fontWeight: 'bold',
+                                        backgroundColor: '#f5f5f5',
+                                    }}
+                                >
+                                    {header.label}
+                                </TableCell>
+                            ))}
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {filteredTableData.map((row, index) => (
+                            <TableRow key={index} hover>
+                                {headers.map((header) => (
+                                    <TableCell key={header.key}>{row[header.key]}</TableCell>
+                                ))}
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </>
+    );
+
     return (
         <StatisticsTemplate
             headers={headers}
-            data={tableData}
+            data={filteredTableData}
             chart1={
                 <Box sx={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column' }}>
                     <h3 style={{ margin: '0 0 10px 0' }}>Binary Questions - Positive/Negative Responses</h3>
@@ -346,10 +500,10 @@ export default function SurveyStatisticsPage() {
             }
             chart2={
                 <Box sx={{ height: '100%', width: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <h3 style={{ margin: '0 0 10px 0' }}>Rating Questions - Response Distribution</h3>
+                    <h3 style={{ margin: '0 0 10px 0' }}>Rating Questions - Average Ratings</h3>
                     {ratingData.length > 0 ? (
                         <div style={{ flex: 1 }}>
-                            <Bubble data={bubbleChartData} options={bubbleOptions} />
+                            <Bar data={ratingChartData} options={ratingOptions} />
                         </div>
                     ) : (
                         <p>No rating questions available</p>
@@ -367,6 +521,7 @@ export default function SurveyStatisticsPage() {
                     ))}
                 </List>
             }
+            customTable={CustomTable}
         />
     );
 }

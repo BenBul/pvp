@@ -7,9 +7,17 @@ interface StatisticsTemplateProps {
     chart1?: React.ReactNode; // Slot for the first chart
     chart2?: React.ReactNode; // Slot for the second chart
     sidebar?: React.ReactNode; // Optional sidebar for the right of the table
+    customTable?: React.ReactNode; // Optional custom table implementation
 }
 
-const StatisticsTemplate: React.FC<StatisticsTemplateProps> = ({ headers, data, chart1, chart2, sidebar }) => {
+const StatisticsTemplate: React.FC<StatisticsTemplateProps> = ({ 
+    headers, 
+    data, 
+    chart1, 
+    chart2, 
+    sidebar,
+    customTable 
+}) => {
     return (
         <Box
             sx={{
@@ -65,34 +73,38 @@ const StatisticsTemplate: React.FC<StatisticsTemplateProps> = ({ headers, data, 
                         p: 2,
                     }}
                 >
-                    <TableContainer>
-                        <Table stickyHeader>
-                            <TableHead>
-                                <TableRow>
-                                    {headers.map((header) => (
-                                        <TableCell
-                                            key={header.key}
-                                            sx={{
-                                                fontWeight: 'bold',
-                                                backgroundColor: '#f5f5f5',
-                                            }}
-                                        >
-                                            {header.label}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {data.map((row, index) => (
-                                    <TableRow key={index} hover>
+                    {customTable ? (
+                        customTable
+                    ) : (
+                        <TableContainer>
+                            <Table stickyHeader>
+                                <TableHead>
+                                    <TableRow>
                                         {headers.map((header) => (
-                                            <TableCell key={header.key}>{row[header.key]}</TableCell>
+                                            <TableCell
+                                                key={header.key}
+                                                sx={{
+                                                    fontWeight: 'bold',
+                                                    backgroundColor: '#f5f5f5',
+                                                }}
+                                            >
+                                                {header.label}
+                                            </TableCell>
                                         ))}
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                                </TableHead>
+                                <TableBody>
+                                    {data.map((row, index) => (
+                                        <TableRow key={index} hover>
+                                            {headers.map((header) => (
+                                                <TableCell key={header.key}>{row[header.key]}</TableCell>
+                                            ))}
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    )}
                 </Paper>
                 {sidebar && (
                     <Box
@@ -112,6 +124,5 @@ const StatisticsTemplate: React.FC<StatisticsTemplateProps> = ({ headers, data, 
         </Box>
     );
 };
-
 
 export default StatisticsTemplate;
