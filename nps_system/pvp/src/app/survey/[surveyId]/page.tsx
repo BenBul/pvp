@@ -7,9 +7,14 @@ import {
   Box,
   Button,
   Container,
-  Typography
+  Typography,
+  TextField,
+  InputAdornment
 } from '@mui/material';
-import { Add as AddIcon } from '@mui/icons-material';
+import { 
+  Add as AddIcon,
+  Search as SearchIcon 
+} from '@mui/icons-material';
 
 import QuestionsList from '../questions/questionsList';
 import AddQuestionModal from '../questions/addQuestionModal';
@@ -45,6 +50,8 @@ export default function SurveyPage() {
   const rawSurveyId = params?.surveyId;
   const surveyId = Array.isArray(rawSurveyId) ? rawSurveyId[0] : rawSurveyId ?? "";
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [filteredQuestions, setFilteredQuestions] = useState<Question[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [surveyTitle, setSurveyTitle] = useState("Loading...");
@@ -75,10 +82,12 @@ export default function SurveyPage() {
             entries (*)
           `)
           .eq('survey_id', surveyId)
+          .eq('is_deleted', false)
           .order('created_at', { ascending: false });
 
         if (questionsError) throw questionsError;
         setQuestions(questionsData || []);
+        setFilteredQuestions(questionsData || []);
       } catch (error) {
         console.error("Error fetching survey data:", error);
         setError("Failed to load survey data");
@@ -92,8 +101,38 @@ export default function SurveyPage() {
     }
   }, [surveyId]);
 
+  // Effect to filter questions when search query changes
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredQuestions(questions);
+    } else {
+      const filtered = questions.filter(question => 
+        question.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredQuestions(filtered);
+    }
+  }, [searchQuery, questions]);
+
   const handleAddQuestion = (newQuestion: Question) => {
-    setQuestions([newQuestion, ...questions]);
+    setQuestions(prevQuestions => {
+      const updatedQuestions = [newQuestion, ...prevQuestions];
+      setFilteredQuestions(updatedQuestions);
+      return updatedQuestions;
+    });
+  };
+
+  const handleQuestionDeleted = (questionId: string) => {
+    setQuestions(prevQuestions => {
+      const updatedQuestions = prevQuestions.filter(question => question.id !== questionId);
+      setFilteredQuestions(updatedQuestions.filter(question => 
+        question.description.toLowerCase().includes(searchQuery.toLowerCase()) || searchQuery.trim() === ''
+      ));
+      return updatedQuestions;
+    });
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
   };
 
   const openAddModal = () => {
@@ -138,11 +177,36 @@ export default function SurveyPage() {
         </Button>
       </Box>
 
+      <Box sx={{ mb: 4 }}>
+        <TextField
+          fullWidth
+          placeholder="Search questions by description..."
+          variant="outlined"
+          value={searchQuery}
+          onChange={handleSearchChange}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+            sx: { 
+              borderRadius: 2,
+              bgcolor: '#f5f5f5',
+              '&:hover': {
+                bgcolor: '#f0f0f0'
+              }
+            }
+          }}
+        />
+      </Box>
+
       <QuestionsList
-        questions={questions}
+        questions={filteredQuestions}
         isLoading={isLoading}
         onAddQuestion={openAddModal}
         onOpenQrDialog={openQrDialog}
+        onQuestionDeleted={handleQuestionDeleted}
       />
 
       <AddQuestionModal

@@ -1,7 +1,7 @@
 'use client';
 
 import QuestionTemplate from "@/app/components/dashboard/statistics/QuestionTemplate";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { supabase } from '@/supabase/client';
 import { useParams } from "next/navigation";
 import LoadingBox from "@/app/components/LoadingBox";
@@ -19,7 +19,18 @@ import {
     Legend,
     Filler
 } from 'chart.js';
-import { Box } from "@mui/material";
+import {
+    Box,
+    Paper,
+    Typography,
+    Grid,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    TextField,
+    Chip
+} from "@mui/material";
 
 ChartJS.register(
     CategoryScale,
@@ -41,199 +52,242 @@ interface IAnswer {
     input?: string;
 }
 
-const getQuestionType = async (questionId: string) => {
-    try {
-        const { data, error } = await supabase
-            .from('questions')
-            .select('type')
-            .eq('id', questionId)
-            .single();
-
-        if (error) throw error;
-
-        return data?.type;
-    } catch (error) {
-        console.error("Error getting question type:", error);
-        return null;
-    }
-}
-
-const getQuestionAnswers = async (questionId: string) => {
-    try {
-        const { data, error } = await supabase
-            .from('answers')
-            .select('rating, created_at, input, ispositive')
-            .eq('question_id', questionId)
-            .returns<IAnswer[]>();
-        if (error) throw error;
-        return data;
-    } catch (error) {
-        console.error("Error getting answers:", error);
-        return null;
-    }
-}
-
-const transformToBinaryTableData = (answer: IAnswer) => {
-    return {
-        created_at: new Date(answer.created_at).toLocaleString(),
-        ispositive: answer.ispositive ? 'Positive' : 'Negative',
-    };
+type BinaryTableRow = {
+    created_at: string;
+    ispositive: string;
+    date: Date;
 };
 
 export default function QuestionStatistics() {
-    type BinaryTableRow = {
-        created_at: string;
-        ispositive: string;
-    }
-
     const params = useParams();
     const questionId = params.question as string;
+
     const [questionType, setQuestionType] = useState('');
     const [loading, setLoading] = useState(true);
     const [answers, setAnswers] = useState<IAnswer[]>([]);
     const [tableData, setTableData] = useState<BinaryTableRow[]>([]);
 
+    const [responseFilter, setResponseFilter] = useState<string>('all');
+    const [startDateStr, setStartDateStr] = useState<string>('');
+    const [endDateStr, setEndDateStr] = useState<string>('');
+
     useEffect(() => {
-        setLoading(true);
         if (!questionId) return;
-        const fetchQuestion = async () => {
-            const type = await getQuestionType(questionId);
-            setQuestionType(type);
-            const answers = await getQuestionAnswers(questionId);
-            setAnswers(answers ?? []);
-            if (type === 'binary') {
-                const binaryTableData = (answers ?? []).map(transformToBinaryTableData);
-                setTableData(binaryTableData);
+
+        const fetchData = async () => {
+            setLoading(true);
+            const { data: typeData } = await supabase
+                .from('questions')
+                .select('type')
+                .eq('id', questionId)
+                .single();
+
+            setQuestionType(typeData?.type || '');
+
+            const { data: answersData } = await supabase
+                .from('answers')
+                .select('rating, created_at, input, ispositive')
+                .eq('question_id', questionId)
+                .returns<IAnswer[]>();
+
+            setAnswers(answersData || []);
+
+            if (typeData?.type === 'binary') {
+                const binaryData = (answersData || []).map(ans => ({
+                    created_at: new Date(ans.created_at).toLocaleString(),
+                    ispositive: ans.ispositive ? 'Positive' : 'Negative',
+                    date: new Date(ans.created_at)
+                }));
+                setTableData(binaryData);
             }
+
+            setLoading(false);
         };
-        fetchQuestion();
-        setLoading(false);
+
+        fetchData();
     }, [questionId]);
 
-    if (loading) {
-        return <LoadingBox />;
-    }
-
-    const getHeadersForStatistics = (type: string) => {
-        switch (type) {
-            case 'binary':
-                return [
-                    { key: 'ispositive', label: 'Positive/Negative' },
-                    { key: 'created_at', label: 'Date' },
-                ];
-            default:
-                return [];
-        }
-    };
-
-    const options = {
-        responsive: true,
-        maintainAspectRatio: false,
-    };
-
-    const processData = (answers: IAnswer[]) => {
-        const dataByDate: { [key: string]: { trueCount: number; falseCount: number } } = {};
-
-        answers.forEach((answer) => {
-            const date = new Date(answer.created_at).toLocaleDateString();
-            if (!dataByDate[date]) {
-                dataByDate[date] = { trueCount: 0, falseCount: 0 };
+    const filteredTableData = useMemo(() => {
+        return tableData.filter(item => {
+            if (responseFilter !== 'all') {
+                if (responseFilter === 'positive' && item.ispositive !== 'Positive') return false;
+                if (responseFilter === 'negative' && item.ispositive !== 'Negative') return false;
             }
-            if (answer.ispositive) {
-                dataByDate[date].trueCount += 1;
-            } else {
-                dataByDate[date].falseCount += 1;
+
+            if (startDateStr) {
+                const start = new Date(startDateStr);
+                start.setHours(0, 0, 0, 0);
+                if (item.date < start) return false;
             }
+
+            if (endDateStr) {
+                const end = new Date(endDateStr);
+                end.setHours(23, 59, 59, 999);
+                if (item.date > end) return false;
+            }
+
+            return true;
         });
+    }, [tableData, responseFilter, startDateStr, endDateStr]);
 
-        return dataByDate;
+    const processFilteredData = (data: BinaryTableRow[]) => {
+        const grouped: Record<string, { trueCount: number; falseCount: number }> = {};
+        data.forEach(row => {
+            const date = row.date.toLocaleDateString();
+            if (!grouped[date]) grouped[date] = { trueCount: 0, falseCount: 0 };
+            if (row.ispositive === 'Positive') grouped[date].trueCount++;
+            else grouped[date].falseCount++;
+        });
+        return grouped;
     };
 
-    const dataByDate = processData(answers);
+    const dataByDate = processFilteredData(filteredTableData);
     const dates = Object.keys(dataByDate);
-    const trueCounts = dates.map((date) => dataByDate[date].trueCount);
-    const falseCounts = dates.map((date) => dataByDate[date].falseCount);
+    const trueCounts = dates.map(date => dataByDate[date].trueCount);
+    const falseCounts = dates.map(date => dataByDate[date].falseCount);
 
-    const renderBinaryPieChart = () => {
-        const positiveCount = answers.filter(a => a.ispositive).length;
-        const negativeCount = answers.filter(a => a.ispositive === false).length;
-
-        const data = {
-            labels: ['Positive', 'Negative'],
-            datasets: [
-                {
-                    label: 'Responses',
-                    data: [positiveCount, negativeCount],
-                    backgroundColor: ['#36A2EB', '#FF6384'],
-                    borderWidth: 1,
-                },
+    const pieData = {
+        labels: ['Positive', 'Negative'],
+        datasets: [{
+            label: 'Responses',
+            data: [
+                filteredTableData.filter(r => r.ispositive === 'Positive').length,
+                filteredTableData.filter(r => r.ispositive === 'Negative').length
             ],
-        };
-
-        return <Pie data={data} />;
+            backgroundColor: ['#36A2EB', '#FF6384']
+        }]
     };
 
-    const lineChartData = {
+    const lineData = {
         labels: dates,
         datasets: [
             {
-                label: 'Positive Responses',
+                label: 'Positive',
                 data: trueCounts,
                 borderColor: '#36A2EB',
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                backgroundColor: 'rgba(54,162,235,0.2)',
                 fill: true,
             },
             {
-                label: 'Negative Responses',
+                label: 'Negative',
                 data: falseCounts,
                 borderColor: '#FF6384',
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                backgroundColor: 'rgba(255,99,132,0.2)',
                 fill: true,
             },
-        ],
+        ]
     };
 
-    const barChartData = {
+    const barData = {
         labels: dates,
         datasets: [
             {
-                label: 'Positive Responses',
+                label: 'Positive',
                 data: trueCounts,
                 backgroundColor: '#36A2EB',
             },
             {
-                label: 'Negative Responses',
+                label: 'Negative',
                 data: falseCounts,
                 backgroundColor: '#FF6384',
-            },
-        ],
+            }
+        ]
     };
 
-    const headers = getHeadersForStatistics(questionType);
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false
+    };
+
+    const headers = [
+        { key: 'ispositive', label: 'Positive/Negative' },
+        { key: 'created_at', label: 'Date' },
+    ];
+
+    const filterControls = (
+        <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
+            <Typography variant="h6" gutterBottom>Filter Responses</Typography>
+            <Grid container spacing={2}>
+                <Grid item xs={12} md={4}>
+                    <FormControl fullWidth size="small">
+                        <InputLabel>Response</InputLabel>
+                        <Select
+                            value={responseFilter}
+                            onChange={(e) => setResponseFilter(e.target.value)}
+                            label="Response"
+                        >
+                            <MenuItem value="all">All</MenuItem>
+                            <MenuItem value="positive">Positive</MenuItem>
+                            <MenuItem value="negative">Negative</MenuItem>
+                        </Select>
+                    </FormControl>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                    <TextField
+                        label="Start Date"
+                        type="date"
+                        fullWidth
+                        value={startDateStr}
+                        onChange={(e) => setStartDateStr(e.target.value)}
+                        InputLabelProps={{ shrink: true }}
+                        size="small"
+                    />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                    <TextField
+                        label="End Date"
+                        type="date"
+                        fullWidth
+                        value={endDateStr}
+                        onChange={(e) => setEndDateStr(e.target.value)}
+                        InputLabelProps={{ shrink: true }}
+                        size="small"
+                    />
+                </Grid>
+            </Grid>
+
+            <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {responseFilter !== 'all' && (
+                    <Chip label={`Filter: ${responseFilter}`} onDelete={() => setResponseFilter('all')} />
+                )}
+                {startDateStr && (
+                    <Chip label={`From: ${new Date(startDateStr).toLocaleDateString()}`} onDelete={() => setStartDateStr('')} />
+                )}
+                {endDateStr && (
+                    <Chip label={`To: ${new Date(endDateStr).toLocaleDateString()}`} onDelete={() => setEndDateStr('')} />
+                )}
+            </Box>
+        </Paper>
+    );
+
+    if (loading) return <LoadingBox />;
 
     if (questionType === 'binary') {
         return (
-            <Box sx={{ marginLeft: '240px', padding: 2 }}> {/* Atitraukiam nuo sidebar */}
+            <Box sx={{ ml: '240px', p: 2 }}>
                 <QuestionTemplate
                     headers={headers}
-                    data={tableData}
+                    data={filteredTableData}
                     chart1={
-                        <Box sx={{ width: '100%', maxWidth: 400 }}>
-                            {renderBinaryPieChart()}
+                        <Box sx={{ width: '100%', maxWidth: 400, mx: 'auto' }}>
+                            <Pie data={pieData} />
                         </Box>
                     }
                     chart2={
-                        <Box sx={{ width: '100%', minHeight: 300 }}>
-                            <Line data={lineChartData} options={options} />
+                        <Box sx={{ height: 300 }}>
+                            <Line data={lineData} options={options} />
                         </Box>
                     }
                     chart3={
-                        <Box sx={{ width: '100%', minHeight: 300 }}>
-                            <Bar data={barChartData} options={options} />
+                        <Box sx={{ height: 300 }}>
+                            <Bar data={barData} options={options} />
                         </Box>
                     }
+                    customTable={filterControls}
                 />
             </Box>
         );
     }
+
+    return null;
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/supabase/client";
 import { Box, Typography, Button, Alert, Paper, CircularProgress, Fade, Zoom } from '@mui/material';
@@ -19,8 +19,22 @@ export default function EntryPage() {
     const timerRef = useRef(0);
     const submittedRef = useRef(false);
     const [progress, setProgress] = useState(100);
+    const router = useRouter();
 
     useEffect(() => {
+
+        const isQuestionDeleted = async () => {
+            const { data } = await supabase
+                .from('questions')
+                .select('is_deleted')
+                .eq('id', questionId)
+                .maybeSingle();
+    
+    
+            if (!data || data.is_deleted) {
+                router.push('/entry/404');
+            }
+        };
         const fetchEntryData = async () => {
             const { data, error } = await supabase
                 .from('entries')
@@ -28,10 +42,15 @@ export default function EntryPage() {
                 .eq('id', entryId)
                 .single();
 
-            if (error) throw error;
+            if (error) {
+                router.push('/entry/404');
+                return;
+            }
+
             setIsPositive(data?.value === "positive");
             setIsLoading(false);
         };
+        isQuestionDeleted();
         fetchEntryData();
     }, [entryId]);
 

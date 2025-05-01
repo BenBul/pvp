@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/supabase/client";
 import { 
   Box, 
@@ -32,15 +32,31 @@ interface QrOptions {
   enableLogo: boolean;
 }
 
+const useDebounce = (value: any, delay: number) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
+
 const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surveyId, onQuestionAdded }) => {
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState("");
   const [newQuestionDesc, setNewQuestionDesc] = useState("");
   
-  const [showPositiveQr, setShowPositiveQr] = useState(false);
-  const [showNegativeQr, setShowNegativeQr] = useState(false);
-  const [positiveQrPreview, setPositiveQrPreview] = useState(null);
-  const [negativeQrPreview, setNegativeQrPreview] = useState(null);
+  const [positiveQrPreview, setPositiveQrPreview] = useState<string | null>(null);
+  const [negativeQrPreview, setNegativeQrPreview] = useState<string | null>(null);
+  const [isLoadingPositiveQr, setIsLoadingPositiveQr] = useState(false);
+  const [isLoadingNegativeQr, setIsLoadingNegativeQr] = useState(false);
   
   const [positiveOptions, setPositiveOptions] = useState({
     color: "#008000",
@@ -55,6 +71,9 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
     logo: "",
     enableLogo: false
   });
+
+  const debouncedPositiveOptions = useDebounce(positiveOptions, 500);
+  const debouncedNegativeOptions = useDebounce(negativeOptions, 500);
 
   const resetFormValues = () => {
     setNewQuestionDesc("");
@@ -74,8 +93,6 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
     
     setPositiveQrPreview(null);
     setNegativeQrPreview(null);
-    setShowPositiveQr(false);
-    setShowNegativeQr(false);
     setError("");
   };
 
@@ -117,8 +134,14 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
     }
   };
 
-  const generateQrPreview = async (options: QrOptions, type: 'positive'|'negative') => {
+  const generateQrPreview = useCallback(async (options: QrOptions, type: 'positive'|'negative') => {
     try {
+      if (type === 'positive') {
+        setIsLoadingPositiveQr(true);
+      } else {
+        setIsLoadingNegativeQr(true);
+      }
+
       const baseUrl = typeof window !== 'undefined' ? 
         `${window.location.protocol}//${window.location.host}` : '';
       const demoUrl = `${baseUrl}/demo/${type}/${crypto.randomUUID()}`;
@@ -127,18 +150,32 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
       
       if (type === 'positive') {
         setPositiveQrPreview(qrImageUrl);
-        setShowPositiveQr(true);
-        setShowNegativeQr(false);
       } else {
         setNegativeQrPreview(qrImageUrl);
-        setShowNegativeQr(true);
-        setShowPositiveQr(false);
       }
     } catch (error) {
       console.error("Error generating QR preview:", error);
       setError("Failed to generate QR preview");
+    } finally {
+      if (type === 'positive') {
+        setIsLoadingPositiveQr(false);
+      } else {
+        setIsLoadingNegativeQr(false);
+      }
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      generateQrPreview(debouncedPositiveOptions, 'positive');
+    }
+  }, [debouncedPositiveOptions, open, generateQrPreview]);
+
+  useEffect(() => {
+    if (open) {
+      generateQrPreview(debouncedNegativeOptions, 'negative');
+    }
+  }, [debouncedNegativeOptions, open, generateQrPreview]);
 
   const handleCreateBoolQuestion = async () => {
     if (!newQuestionDesc.trim()) {
@@ -268,16 +305,16 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
             options={positiveOptions} 
             setOptions={setPositiveOptions}
             type="positive"
-            previewUrl={showPositiveQr ? positiveQrPreview : null}
-            onPreviewClick={() => generateQrPreview(positiveOptions, 'positive')}
+            previewUrl={positiveQrPreview}
+            isLoading={isLoadingPositiveQr}
           />
           
           <QrCustomizationSection 
             options={negativeOptions} 
             setOptions={setNegativeOptions}
             type="negative"
-            previewUrl={showNegativeQr ? negativeQrPreview : null}
-            onPreviewClick={() => generateQrPreview(negativeOptions, 'negative')}
+            previewUrl={negativeQrPreview}
+            isLoading={isLoadingNegativeQr}
           />
         </Box>
       </DialogContent>
