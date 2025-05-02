@@ -42,7 +42,7 @@ import {
     Legend,
     Filler
 } from 'chart.js';
-import { Pie, Bar } from 'react-chartjs-2';
+import { Pie, Bar, Bubble } from 'react-chartjs-2';
 
 ChartJS.register(
     CategoryScale,
@@ -251,6 +251,59 @@ export default function SurveyStatisticsPage() {
 
     const binaryData = processBinaryQuestionsData();
     const ratingData = processRatingQuestionsData();
+    const bubbleChartData = {
+        datasets: ratingData.map((item, index) => ({
+            label: item.question,
+            data: [
+                {
+                    x: index + 1, // Position on the x-axis (e.g., question index)
+                    y: item.averageRating, // Average rating on the y-axis
+                    r: item.responseCount * 2, // Bubble size based on the number of responses
+                },
+            ],
+            backgroundColor: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(
+                Math.random() * 255
+            )}, 0.6)`, // Random color for each bubble
+            borderColor: `rgba(0, 0, 0, 0.1)`,
+            borderWidth: 1,
+        })),
+    };
+    const bubbleOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: 'Question Index',
+                },
+                ticks: {
+                    stepSize: 1,
+                },
+            },
+            y: {
+                beginAtZero: true,
+                max: 5, // Assuming ratings are between 0 and 5
+                title: {
+                    display: true,
+                    text: 'Average Rating',
+                },
+            },
+        },
+        plugins: {
+            legend: {
+                position: 'top' as 'top',
+            },
+            tooltip: {
+                callbacks: {
+                    label: function (context: any) {
+                        const { x, y, r } = context.raw;
+                        return `Average Rating: ${y}, Responses: ${r / 2}`;
+                    },
+                },
+            },
+        },
+    };
 
     const binaryChartData = {
         labels: binaryData.map(item => item.question),
@@ -302,7 +355,7 @@ export default function SurveyStatisticsPage() {
         plugins: {
             legend: {
                 position: 'top' as const,
-                align: 'start',
+                align: 'start' as 'start',
                 labels: {
                     boxWidth: 12,
                     padding: 10
@@ -313,7 +366,7 @@ export default function SurveyStatisticsPage() {
             },
             tooltip: {
                 callbacks: {
-                    afterTitle: function(context) {
+                    afterTitle: function(context: { dataIndex: any; }[]) {
                         const dataIndex = context[0].dataIndex;
                         const totalResponses = binaryData[dataIndex].totalCount;
                         return `Total Responses: ${totalResponses}`;
@@ -344,7 +397,7 @@ export default function SurveyStatisticsPage() {
         plugins: {
             legend: {
                 position: 'top' as const,
-                align: 'start',
+                align: 'start' as 'start',
                 labels: {
                     boxWidth: 12,
                     padding: 10
@@ -355,7 +408,7 @@ export default function SurveyStatisticsPage() {
             },
             tooltip: {
                 callbacks: {
-                    afterTitle: function(context) {
+                    afterTitle: function(context: { dataIndex: any; }[]) {
                         const dataIndex = context[0].dataIndex;
                         const responseCount = ratingData[dataIndex].responseCount;
                         return `Responses: ${responseCount}`;
@@ -470,14 +523,16 @@ export default function SurveyStatisticsPage() {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredTableData.map((row, index) => (
-                            <TableRow key={index} hover>
-                                {headers.map((header) => (
-                                    <TableCell key={header.key}>{row[header.key]}</TableCell>
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableBody>
+                    {filteredTableData.map((row, index) => (
+                        <TableRow key={index} hover>
+                            {headers.map((header) => (
+                                <TableCell key={header.key}>
+                                    {row[header.key as keyof typeof row]}
+                                </TableCell>
+                            ))}
+                        </TableRow>
+                    ))}
+                </TableBody>
                 </Table>
             </TableContainer>
         </>
@@ -504,7 +559,7 @@ export default function SurveyStatisticsPage() {
                     <h3 style={{ margin: '0 0 10px 0' }}>Rating Questions - Average Ratings</h3>
                     {ratingData.length > 0 ? (
                         <div style={{ flex: 1 }}>
-                            <Bar data={ratingChartData} options={ratingOptions} />
+                            <Bubble data={bubbleChartData} options={bubbleOptions} />
                         </div>
                     ) : (
                         <p>No rating questions available</p>
@@ -517,7 +572,6 @@ export default function SurveyStatisticsPage() {
                         <ListItem key={question.id}>
                             <ListItemButton onClick={() => handleOpenQuestionStatistics(question.id)}>
                                 <ListItemText primary={question.description} secondary={question.type}  />
-                                {/* is Deleted chip */}
                                 {question.isDeleted && <Chip label="Deleted" color="error" size="small" sx={{ ml: 1 }} />}
                             </ListItemButton>
                         </ListItem>
