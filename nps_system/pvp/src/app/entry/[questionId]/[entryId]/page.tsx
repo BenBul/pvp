@@ -23,7 +23,7 @@ export default function EntryPage() {
     const submittedRef = useRef(false);
     const router = useRouter();
     const [ratingValue, setRatingValue] = useState<number | null>(0);
-    const [comment, setComment] = useState<string | null>(null);
+    const [comment, setComment] = useState<string>("");
 
     useEffect(() => {
         const isQuestionDeleted = async () => {

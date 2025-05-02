@@ -116,6 +116,7 @@ export default function QuestionStatistics() {
                     .map(ans => ({
                         created_at: new Date(ans.created_at).toLocaleString(),
                         rating: ans.rating!,
+                        input: ans.input || '',
                         date: new Date(ans.created_at)
                     }));
                 setRatingTableData(ratingData);
@@ -293,6 +294,7 @@ export default function QuestionStatistics() {
     const ratingHeaders = [
         { key: 'rating', label: 'Rating' },
         { key: 'created_at', label: 'Date' },
+        { key: 'input', label: 'Comment' },
     ];
 
     const cumulativeRatingData = useMemo(() => {
