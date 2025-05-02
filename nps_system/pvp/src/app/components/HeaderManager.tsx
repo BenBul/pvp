@@ -9,14 +9,14 @@ export default function HeaderManager() {
 
   if (pathname === '/') {
     return (
-      <Navigation
-        onScrollToAction={(id: string) => {
-          const element = document.getElementById(id);
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
-          }
-        }}
-      />
+        <Navigation
+            onScrollToAction={(id: string) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                }
+            }}
+        />
     );
   }
 

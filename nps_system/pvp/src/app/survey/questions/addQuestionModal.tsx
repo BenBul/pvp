@@ -33,6 +33,15 @@ interface QrOptions {
   enableLogo: boolean;
 }
 
+type EntryValue = 'positive' | 'negative' | 'rating';
+
+interface Entry {
+  id: string;
+  url: string;
+  question_id: string;
+  value: EntryValue;
+}
+
 const useDebounce = (value: any, delay: number) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
   useEffect(() => {
@@ -180,7 +189,7 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
         : '';
 
     try {
-      let entries = [];
+      let entries: Entry[] = [];
 
       if (questionType === "binary") {
         const positiveId = crypto.randomUUID();

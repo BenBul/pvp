@@ -92,7 +92,7 @@ export default function SurveyStatisticsPage() {
     const [responseFilter, setResponseFilter] = useState<string>('all');
     const [questionFilter, setQuestionFilter] = useState<string>('');
 
-    const headers = [
+    const headers: { key: keyof typeof tableData[0]; label: string }[] = [
         { key: 'question', label: 'Question' },
         { key: 'created_at', label: 'Date' },
         { key: 'ispositive', label: 'Positive' },
@@ -366,7 +366,7 @@ export default function SurveyStatisticsPage() {
             },
             tooltip: {
                 callbacks: {
-                    afterTitle: function(context: { dataIndex: any; }[]) {
+                    afterTitle: function(context: any) {
                         const dataIndex = context[0].dataIndex;
                         const totalResponses = binaryData[dataIndex].totalCount;
                         return `Total Responses: ${totalResponses}`;
@@ -408,7 +408,7 @@ export default function SurveyStatisticsPage() {
             },
             tooltip: {
                 callbacks: {
-                    afterTitle: function(context: { dataIndex: any; }[]) {
+                    afterTitle: function(context: any) {
                         const dataIndex = context[0].dataIndex;
                         const responseCount = ratingData[dataIndex].responseCount;
                         return `Responses: ${responseCount}`;
