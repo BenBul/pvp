@@ -21,12 +21,12 @@ export default function HeaderManager() {
   }
 
   if (
-      pathname.startsWith('/survey') ||
-      pathname.startsWith('/statistics') ||
-      pathname.startsWith('/profile')
+    pathname.startsWith('/survey') ||
+    pathname.startsWith('/statistics') ||
+    pathname.startsWith('/profile')
   ) {
     return <SurveyHeader />;
   }
 
-  return null; // Don't show any header on other pages (like /login, /register, etc.)
+  return null;
 }
