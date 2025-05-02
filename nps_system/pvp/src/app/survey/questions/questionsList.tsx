@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { 
-  Box, 
-  Button, 
-  Typography, 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CircularProgress 
+import {
+  Box,
+  Button,
+  Typography,
+  Card,
+  CardContent,
+  CardHeader,
+  CircularProgress
 } from '@mui/material';
-import { 
+import {
   Add as AddIcon,
   Warning as AlertIcon,
   SearchOff as NoResultsIcon
@@ -38,14 +38,14 @@ type QuestionsListProps = {
     questions: Question[];
     isLoading: boolean;
     onAddQuestion: () => void;
-    onOpenQrDialog: (url: string, type: 'positive' | 'negative') => void;
+    onOpenQrDialog: (url: string, type: 'positive' | 'negative' | 'rating') => void;
     onQuestionDeleted: (questionId: string) => void;
 };
 
-const QuestionsList: React.FC<QuestionsListProps> = ({ 
-  questions, 
-  isLoading, 
-  onAddQuestion, 
+const QuestionsList: React.FC<QuestionsListProps> = ({
+  questions,
+  isLoading,
+  onAddQuestion,
   onOpenQrDialog,
   onQuestionDeleted
 }) => {
@@ -69,11 +69,11 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
   return (
     <>
       <Card elevation={2} sx={{ overflow: 'hidden', borderRadius: 2 }}>
-        <CardHeader 
+        <CardHeader
           title="Survey Questions"
           sx={{ bgcolor: 'grey.50', borderBottom: '1px solid #eee' }}
         />
-        
+
         <CardContent sx={{ p: 0 }}>
           {isLoading ? (
             <Box sx={{ p: 4, textAlign: 'center' }}>
@@ -107,10 +107,10 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
               )}
             </Box>
           ) : (
-            <Box 
-              sx={{ 
-                maxHeight: '500px', 
-                overflowY: 'auto', 
+            <Box
+              sx={{
+                maxHeight: '500px',
+                overflowY: 'auto',
                 '&::-webkit-scrollbar': {
                   width: '8px',
                 },
@@ -128,7 +128,7 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
               }}
             >
               {questions.map((question, index) => (
-                <QuestionItem 
+                <QuestionItem
                   key={question.id}
                   question={question}
                   isLast={index === questions.length - 1}
@@ -143,7 +143,7 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
       </Card>
 
       {questionToDelete && (
-        <DeleteQuestionDialog 
+        <DeleteQuestionDialog
           open={deleteDialogOpen}
           onClose={handleCloseDeleteDialog}
           questionId={questionToDelete.id}

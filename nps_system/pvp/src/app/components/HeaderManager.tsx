@@ -10,11 +10,11 @@ export default function HeaderManager() {
   if (pathname === '/') {
     return (
         <Navigation
-            onScrollTo={(id: string) => {
-              const element = document.getElementById(id);
-              if (element) {
-                element.scrollIntoView({ behavior: 'smooth' });
-              }
+            onScrollToAction={(id: string) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                }
             }}
         />
     );
