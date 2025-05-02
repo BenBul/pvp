@@ -58,6 +58,12 @@ type BinaryTableRow = {
     date: Date;
 };
 
+type RatingTableRow = {
+    created_at: string;
+    rating: number;
+    date: Date;
+};
+
 export default function QuestionStatistics() {
     const params = useParams();
     const questionId = params.question as string;
@@ -66,10 +72,13 @@ export default function QuestionStatistics() {
     const [loading, setLoading] = useState(true);
     const [answers, setAnswers] = useState<IAnswer[]>([]);
     const [tableData, setTableData] = useState<BinaryTableRow[]>([]);
+    const [ratingTableData, setRatingTableData] = useState<RatingTableRow[]>([]);
 
     const [responseFilter, setResponseFilter] = useState<string>('all');
     const [startDateStr, setStartDateStr] = useState<string>('');
     const [endDateStr, setEndDateStr] = useState<string>('');
+    const [minRating, setMinRating] = useState<string>('');
+    const [maxRating, setMaxRating] = useState<string>('');
 
     useEffect(() => {
         if (!questionId) return;
@@ -101,6 +110,18 @@ export default function QuestionStatistics() {
                 setTableData(binaryData);
             }
 
+            if (typeData?.type === 'rating') {
+                const ratingData = (answersData || [])
+                    .filter(ans => typeof ans.rating === 'number')
+                    .map(ans => ({
+                        created_at: new Date(ans.created_at).toLocaleString(),
+                        rating: ans.rating!,
+                        input: ans.input || '',
+                        date: new Date(ans.created_at)
+                    }));
+                setRatingTableData(ratingData);
+            }
+
             setLoading(false);
         };
 
@@ -129,6 +150,31 @@ export default function QuestionStatistics() {
             return true;
         });
     }, [tableData, responseFilter, startDateStr, endDateStr]);
+
+    const filteredRatingData = useMemo(() => {
+        return ratingTableData.filter(item => {
+            // Filter by start date
+            if (startDateStr) {
+                const start = new Date(startDateStr);
+                start.setHours(0, 0, 0, 0);
+                if (item.date < start) return false;
+            }
+
+            // Filter by end date
+            if (endDateStr) {
+                const end = new Date(endDateStr);
+                end.setHours(23, 59, 59, 999);
+                if (item.date > end) return false;
+            }
+
+            // Filter by rating range (min and max)
+            if (minRating && item.rating < parseInt(minRating)) return false;
+            if (maxRating && item.rating > parseInt(maxRating)) return false;
+
+            return true;
+        });
+    }, [ratingTableData, startDateStr, endDateStr, minRating, maxRating]);
+
 
     const processFilteredData = (data: BinaryTableRow[]) => {
         const grouped: Record<string, { trueCount: number; falseCount: number }> = {};
@@ -194,6 +240,47 @@ export default function QuestionStatistics() {
         ]
     };
 
+    const ratingLineData = useMemo(() => {
+        const grouped: Record<string, number[]> = {};
+        filteredRatingData.forEach(row => {
+            const date = row.date.toLocaleDateString();
+            if (!grouped[date]) grouped[date] = [];
+            grouped[date].push(row.rating);
+        });
+
+        const dates = Object.keys(grouped).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+        const avgRatings = dates.map(date => {
+            const values = grouped[date];
+            return values.reduce((a, b) => a + b, 0) / values.length;
+        });
+
+        return {
+            labels: dates,
+            datasets: [{
+                label: 'Average Rating',
+                data: avgRatings,
+                borderColor: '#36A2EB',
+                backgroundColor: 'rgba(54,162,235,0.2)',
+                fill: true,
+            }]
+        };
+    }, [filteredRatingData]);
+
+    const ratingHistogramData = useMemo(() => {
+        const ratingCounts = [1, 2, 3, 4, 5].map(rating =>
+            filteredRatingData.filter(r => r.rating === rating).length
+        );
+
+        return {
+            labels: ['1', '2', '3', '4', '5'],
+            datasets: [{
+                label: 'Ratings Count',
+                data: ratingCounts,
+                backgroundColor: '#36A2EB'
+            }]
+        };
+    }, [filteredRatingData]);
+
     const options = {
         responsive: true,
         maintainAspectRatio: false
@@ -204,25 +291,95 @@ export default function QuestionStatistics() {
         { key: 'created_at', label: 'Date' },
     ];
 
+    const ratingHeaders = [
+        { key: 'rating', label: 'Rating' },
+        { key: 'created_at', label: 'Date' },
+        { key: 'input', label: 'Comment' },
+    ];
+
+    const cumulativeRatingData = useMemo(() => {
+        const grouped: Record<string, number[]> = {};
+        filteredRatingData.forEach(row => {
+            const date = row.date.toLocaleDateString();
+            if (!grouped[date]) grouped[date] = [];
+            grouped[date].push(row.rating);
+        });
+
+        const sortedDates = Object.keys(grouped).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+        const cumulativeAverages: number[] = [];
+        let total = 0;
+        let count = 0;
+
+        sortedDates.forEach(date => {
+            const ratings = grouped[date];
+            ratings.forEach(r => {
+                total += r;
+                count += 1;
+            });
+            cumulativeAverages.push(total / count);
+        });
+
+        return {
+            labels: sortedDates,
+            datasets: [{
+                label: 'Cumulative Avg Rating',
+                data: cumulativeAverages,
+                borderColor: '#4CAF50',
+                backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                fill: true,
+            }]
+        };
+    }, [filteredRatingData]);
+
     const filterControls = (
         <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
             <Typography variant="h6" gutterBottom>Filter Responses</Typography>
             <Grid container spacing={2}>
-                <Grid item xs={12} md={4}>
-                    <FormControl fullWidth size="small">
-                        <InputLabel>Response</InputLabel>
-                        <Select
-                            value={responseFilter}
-                            onChange={(e) => setResponseFilter(e.target.value)}
-                            label="Response"
-                        >
-                            <MenuItem value="all">All</MenuItem>
-                            <MenuItem value="positive">Positive</MenuItem>
-                            <MenuItem value="negative">Negative</MenuItem>
-                        </Select>
-                    </FormControl>
-                </Grid>
-                <Grid item xs={12} md={4}>
+                {questionType === 'binary' && (
+                    <Grid item xs={12} md={4}>
+                        <FormControl fullWidth size="small">
+                            <InputLabel>Response</InputLabel>
+                            <Select
+                                value={responseFilter}
+                                onChange={(e) => setResponseFilter(e.target.value)}
+                                label="Response"
+                            >
+                                <MenuItem value="all">All</MenuItem>
+                                <MenuItem value="positive">Positive</MenuItem>
+                                <MenuItem value="negative">Negative</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                )}
+                {questionType === 'rating' && (
+                    <>
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                label="Min Rating"
+                                type="number"
+                                fullWidth
+                                value={minRating}
+                                onChange={(e) => setMinRating(e.target.value)}
+                                InputLabelProps={{ shrink: true }}
+                                size="small"
+                                inputProps={{ min: 1, max: 5 }}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                label="Max Rating"
+                                type="number"
+                                fullWidth
+                                value={maxRating}
+                                onChange={(e) => setMaxRating(e.target.value)}
+                                InputLabelProps={{ shrink: true }}
+                                size="small"
+                                inputProps={{ min: 1, max: 5 }}
+                            />
+                        </Grid>
+                    </>
+                )}
+                <Grid item xs={12} md={questionType === 'binary' ? 4 : 6}>
                     <TextField
                         label="Start Date"
                         type="date"
@@ -233,7 +390,7 @@ export default function QuestionStatistics() {
                         size="small"
                     />
                 </Grid>
-                <Grid item xs={12} md={4}>
+                <Grid item xs={12} md={questionType === 'binary' ? 4 : 6}>
                     <TextField
                         label="End Date"
                         type="date"
@@ -247,8 +404,14 @@ export default function QuestionStatistics() {
             </Grid>
 
             <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {responseFilter !== 'all' && (
+                {questionType === 'binary' && responseFilter !== 'all' && (
                     <Chip label={`Filter: ${responseFilter}`} onDelete={() => setResponseFilter('all')} />
+                )}
+                {questionType === 'rating' && minRating && (
+                    <Chip label={`Min Rating: ${minRating}`} onDelete={() => setMinRating('')} />
+                )}
+                {questionType === 'rating' && maxRating && (
+                    <Chip label={`Max Rating: ${maxRating}`} onDelete={() => setMaxRating('')} />
                 )}
                 {startDateStr && (
                     <Chip label={`From: ${new Date(startDateStr).toLocaleDateString()}`} onDelete={() => setStartDateStr('')} />
@@ -281,6 +444,33 @@ export default function QuestionStatistics() {
                     chart3={
                         <Box sx={{ height: 300 }}>
                             <Bar data={barData} options={options} />
+                        </Box>
+                    }
+                    customTable={filterControls}
+                />
+            </Box>
+        );
+    }
+
+    if (questionType === 'rating') {
+        return (
+            <Box sx={{ ml: '240px', p: 2 }}>
+                <QuestionTemplate
+                    headers={ratingHeaders}
+                    data={filteredRatingData}
+                    chart1={
+                        <Box sx={{ height: 300 }}>
+                            <Bar data={ratingHistogramData} options={options} />
+                        </Box>
+                    }
+                    chart2={
+                        <Box sx={{ height: 300 }}>
+                            <Line data={ratingLineData} options={options} />
+                        </Box>
+                    }
+                    chart3={
+                        <Box sx={{ height: 300 }}>
+                            <Line data={cumulativeRatingData} options={options} />
                         </Box>
                     }
                     customTable={filterControls}

@@ -335,7 +335,7 @@ export default function SurveyStatisticsPage() {
             },
             y: {
                 beginAtZero: true,
-                max: 10, 
+                max: 5,
                 title: {
                     display: false
                 }
