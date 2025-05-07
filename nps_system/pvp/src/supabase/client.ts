@@ -39,3 +39,22 @@ export const logout = async () => {
     await supabase.auth.signOut();
     window.location.href = "/";
 };
+
+export const getUserName = async () => {
+    if (!session) {
+        return;
+    }
+
+    const { data } = await supabase
+        .from('users')
+        .select('name')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+    if (data) {
+        cachedName = data.name;
+        return data.name;
+    }
+};
+
+export let cachedName: string | undefined = undefined;
