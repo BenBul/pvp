@@ -52,9 +52,17 @@ export const getUserName = async () => {
         .maybeSingle();
 
     if (data) {
-        cachedName = data.name;
+        setCachedName(data.name);
         return data.name;
     }
 };
 
-export let cachedName: string | undefined = undefined;
+let cachedName: string | undefined = undefined;
+
+// Getter for cachedName
+export const getCachedName = (): string | undefined => cachedName;
+
+// Setter for cachedName
+export const setCachedName = (name: string | undefined): void => {
+    cachedName = name;
+};

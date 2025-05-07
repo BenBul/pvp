@@ -18,7 +18,7 @@ import {
 import FormDrawer from '@/app/components/dashboard/surveys/FormDrawer';
 import SurveyItemsList from '@/app/components/dashboard/surveys/SurveyItemList';
 import TopBar from '../components/TopBar';
-import { supabase, session, cachedName, getUserName } from '@/supabase/client';
+import { supabase, session, getCachedName, getUserName } from '@/supabase/client';
 
 interface SurveyItem {
   id: string;
@@ -107,7 +107,7 @@ export default function SurveysPage() {
 
         setSurveyItems(surveyItems);
         setFilteredItems(surveyItems);
-        setDisplayName(cachedName || await getUserName());
+        setDisplayName(getCachedName() || await getUserName());
         setTotalPages(Math.ceil((totalItems || 0) / pageSize));
       } catch (error) {
         console.error('Error fetching survey items or answers:', error);
@@ -154,7 +154,7 @@ export default function SurveysPage() {
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Box>
                   <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
-                    Hello {cachedName || ''}!
+                    Hello {displayName}!
                   </Typography>
                   <Typography variant="h5" color="text.secondary">
                     Manage your surveys and forms
