@@ -39,3 +39,30 @@ export const logout = async () => {
     await supabase.auth.signOut();
     window.location.href = "/";
 };
+
+export const getUserName = async () => {
+    if (!session) {
+        return;
+    }
+
+    const { data } = await supabase
+        .from('users')
+        .select('name')
+        .eq('id', session.user.id)
+        .maybeSingle();
+
+    if (data) {
+        setCachedName(data.name);
+        return data.name;
+    }
+};
+
+let cachedName: string | undefined = undefined;
+
+// Getter for cachedName
+export const getCachedName = (): string | undefined => cachedName;
+
+// Setter for cachedName
+export const setCachedName = (name: string | undefined): void => {
+    cachedName = name;
+};
