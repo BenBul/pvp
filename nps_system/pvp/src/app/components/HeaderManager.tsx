@@ -5,28 +5,29 @@ import Navigation from './Navigation';
 import SurveyHeader from './headers/SurveyHeader';
 
 export default function HeaderManager() {
-  const pathname = usePathname();
+    const pathname = usePathname();
 
-  if (pathname === '/') {
-    return (
-        <Navigation
-            onScrollToAction={(id: string) => {
-                const element = document.getElementById(id);
-                if (element) {
-                    element.scrollIntoView({ behavior: 'smooth' });
-                }
-            }}
-        />
-    );
-  }
+    if (pathname === '/') {
+        return (
+            <Navigation
+                onScrollToAction={(id: string) => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }}
+            />
+        );
+    }
 
-  if (
-    pathname.startsWith('/survey') ||
-    pathname.startsWith('/statistics') ||
-    pathname.startsWith('/profile')
-  ) {
-    return <SurveyHeader />;
-  }
+    // Tik čia rodom SurveyHeader su TopBar
+    if (
+        pathname.startsWith('/survey') ||
+        pathname.startsWith('/statistics') ||
+        pathname.startsWith('/profile')
+    ) {
+        return <SurveyHeader />;
+    }
 
-  return null;
+    return null;
 }
