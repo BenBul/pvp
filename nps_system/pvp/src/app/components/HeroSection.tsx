@@ -27,7 +27,7 @@ export default function HeroSection() {
                             mb: 3,
                         }}
                     >
-                        PVP
+                        NPS
                     </Typography>
 
                     <Typography
@@ -40,8 +40,9 @@ export default function HeroSection() {
                             mx: "auto",
                         }}
                     >
-                        Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been
+                        Welcome to the NPS systems – a smart solution for collecting customer feedback, analyzing results, and gaining real-time insights. Easily create surveys, gather responses, and monitor your data efficiently.
                     </Typography>
+
                 </Box>
 
                 <Box

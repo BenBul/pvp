@@ -30,28 +30,37 @@ export default function SurveyHeader() {
   return (
       <>
         <TopBar />
-        <Drawer
-            variant="permanent"
-            sx={{
-              width: 100,
-              flexShrink: 0,
-              '& .MuiDrawer-paper': {
-                width: 100,
-                boxSizing: 'border-box',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                py: 2,
-                bgcolor: '#f8f8f8',
-              },
-            }}
-        >
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h6">LOGO</Typography>
-          </Box>
-          <List>
-            {navItems.map((item) => {
-              const isActive = pathname.startsWith(item.path);
+          <Drawer
+              variant="permanent"
+              sx={{
+                  width: 100,
+                  flexShrink: 0,
+                  '& .MuiDrawer-paper': {
+                      width: 100,
+                      boxSizing: 'border-box',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      py: 2,
+                      bgcolor: '#f8f8f8',
+                  },
+              }}
+          >
+              <Box sx={{ mb: 4 }}>
+                  <img
+                      src="/logo.svg"
+                      alt="NPS Systems Logo"
+                      style={{
+                          width: "80px",      // Tik vienas matmuo
+                          objectFit: "contain"
+                      }}
+                  />
+
+              </Box>
+
+              <List>
+                  {navItems.map((item) => {
+                      const isActive = pathname.startsWith(item.path);
               return (
                   <ListItemButton
                       key={item.label}

@@ -52,7 +52,7 @@ export default function Navigation({ onScrollToAction }: { onScrollToAction: (id
                             src="/logo.svg"
                             alt="Logo"
                             style={{
-                                height: "64px",
+                                height: "100px",
                                 objectFit: "contain",
                             }}
                         />

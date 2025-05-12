@@ -67,11 +67,9 @@ export default function AboutSection() {
                         lineHeight: "150%",
                     }}
                 >
-                    Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of
-                    classical Latin literature from 45 BC, making it over 2000 years old. Richard Contrary to popular
-                    belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature
-                    from 45 BC, making it over 2000 years old. Richard
+                    NPS Systems is a modern feedback platform designed to help companies gather and analyze insights from both customers and employees. With our tools, you can easily create surveys, share them via QR codes, and track results in real time. Whether you're measuring public satisfaction or conducting internal performance evaluations, NPS makes feedback fast, visual, and effective.
                 </Typography>
+
             </Box>
         </Box>
     );
