@@ -217,7 +217,7 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
         const ratingQr = await generateQrCode(ratingUrl, ratingOptions);
 
         entries = [
-          { id: ratingId, url: ratingQr, question_id: questionId, value: 'rating', short_code: customShortCode || null }
+          { id: ratingId, url: ratingQr, question_id: questionId, value: 'rating' }
         ];
       }
 

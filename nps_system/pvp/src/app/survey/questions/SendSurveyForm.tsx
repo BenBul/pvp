@@ -13,13 +13,16 @@ import {
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ShortCodeModal from './ShortCodeModal';
 
+type SendSurveyFormProps = {
+    questionId: string;
+    shortCode: string | null;
+};
+
 export default function SendSurveyForm({
                                            questionId,
                                            shortCode: initialShortCode
-                                       }: {
-    questionId: string;
-    shortCode: string | null;
-}) {
+                                       }: SendSurveyFormProps) {
+
     const [emailsInput, setEmailsInput] = useState("");
     const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
     const [invalids, setInvalids] = useState<string[]>([]);

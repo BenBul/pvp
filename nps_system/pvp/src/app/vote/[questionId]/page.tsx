@@ -64,14 +64,15 @@ export default function VotePage() {
 
             setQuestion(data);
 
-            if (data.type === "binary") {
-                const positive = data.entries?.find((e) => e.value === "positive");
-                const negative = data.entries?.find((e) => e.value === "negative");
+            if (data.entries && Array.isArray(data.entries)) {
+                const positive = data.entries.find((e: Entry) => e.value === "positive");
+                const negative = data.entries.find((e: Entry) => e.value === "negative");
 
                 if (positive && negative) {
                     setBinaryOptions({ positive, negative });
                 }
             }
+
 
             setLoading(false);
         }
