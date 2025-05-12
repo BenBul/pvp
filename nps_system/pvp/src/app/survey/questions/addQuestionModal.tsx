@@ -1,3 +1,4 @@
+// src/app/survey/questions/addQuestionModal.tsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/supabase/client";
 import {
@@ -40,6 +41,7 @@ interface Entry {
   url: string;
   question_id: string;
   value: EntryValue;
+  short_code?: string | null;
 }
 
 const useDebounce = (value: any, delay: number) => {
@@ -56,6 +58,8 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
   const [error, setError] = useState("");
   const [newQuestionDesc, setNewQuestionDesc] = useState("");
   const [questionType, setQuestionType] = useState<"binary" | "rating">("binary");
+  const [customShortCode, setCustomShortCode] = useState("");
+  const [isCheckingCode, setIsCheckingCode] = useState(false);
 
   const [positiveOptions, setPositiveOptions] = useState<QrOptions>({
     color: "#008000",
@@ -93,15 +97,10 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
   const resetFormValues = () => {
     setNewQuestionDesc("");
     setQuestionType("binary");
-    setPositiveOptions({
-      color: "#008000", body: "square", logo: "", enableLogo: false
-    });
-    setNegativeOptions({
-      color: "#ff0000", body: "square", logo: "", enableLogo: false
-    });
-    setRatingOptions({
-      color: "#000000", body: "square", logo: "", enableLogo: false
-    });
+    setCustomShortCode("");
+    setPositiveOptions({ color: "#008000", body: "square", logo: "", enableLogo: false });
+    setNegativeOptions({ color: "#ff0000", body: "square", logo: "", enableLogo: false });
+    setRatingOptions({ color: "#000000", body: "square", logo: "", enableLogo: false });
     setPositiveQrPreview(null);
     setNegativeQrPreview(null);
     setRatingQrPreview(null);
@@ -114,45 +113,38 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
   };
 
   const generateQrCode = async (redirectUrl: string, options: QrOptions) => {
-    try {
-      const payload = {
-        URL: redirectUrl,
-        color: options.color,
-        body: options.body,
-        logo: options.enableLogo ? options.logo : "",
-      };
+    const payload = {
+      URL: redirectUrl,
+      color: options.color,
+      body: options.body,
+      logo: options.enableLogo ? options.logo : "",
+    };
 
-      const response = await fetch("/api/qr", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+    const response = await fetch("/api/qr", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
 
-      if (!response.ok) throw new Error(`Error: ${response.status}`);
-      const data = await response.json();
-      return data.url;
-    } catch (error) {
-      console.error("QR code generation failed:", error);
-      throw error;
-    }
+    if (!response.ok) throw new Error(`QR code error: ${response.status}`);
+    const data = await response.json();
+    return data.url;
   };
 
-  const generateQrPreview = useCallback(async (options: QrOptions, type: 'positive' | 'negative' | 'rating') => {
+  const generateQrPreview = useCallback(async (options: QrOptions, type: EntryValue) => {
     try {
       if (type === 'positive') setIsLoadingPositiveQr(true);
       if (type === 'negative') setIsLoadingNegativeQr(true);
       if (type === 'rating') setIsLoadingRatingQr(true);
 
-      const baseUrl = typeof window !== 'undefined'
-          ? `${window.location.protocol}//${window.location.host}`
-          : '';
+      const baseUrl = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}` : '';
       const demoUrl = `${baseUrl}/demo/${type}/${crypto.randomUUID()}`;
       const qrImageUrl = await generateQrCode(demoUrl, options);
 
       if (type === 'positive') setPositiveQrPreview(qrImageUrl);
       if (type === 'negative') setNegativeQrPreview(qrImageUrl);
       if (type === 'rating') setRatingQrPreview(qrImageUrl);
-    } catch (error) {
+    } catch {
       setError("Failed to generate QR preview");
     } finally {
       if (type === 'positive') setIsLoadingPositiveQr(false);
@@ -189,29 +181,43 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
         : '';
 
     try {
+      if (customShortCode) {
+        setIsCheckingCode(true);
+        const { data: existingCode } = await supabase
+            .from('questions')
+            .select('id')
+            .eq('short_code', customShortCode)
+            .maybeSingle();
+        setIsCheckingCode(false);
+
+        if (existingCode) {
+          setError("Short code already exists. Please choose another.");
+          setIsCreating(false);
+          return;
+        }
+      }
+
       let entries: Entry[] = [];
 
       if (questionType === "binary") {
-        const positiveId = crypto.randomUUID();
-        const negativeId = crypto.randomUUID();
-
-        const positiveUrl = `${baseUrl}/entry/${questionId}/${positiveId}`;
-        const negativeUrl = `${baseUrl}/entry/${questionId}/${negativeId}`;
-
-        const positiveQrUrl = await generateQrCode(positiveUrl, positiveOptions);
-        const negativeQrUrl = await generateQrCode(negativeUrl, negativeOptions);
+        const posId = crypto.randomUUID();
+        const negId = crypto.randomUUID();
+        const posUrl = `${baseUrl}/entry/${questionId}/${posId}`;
+        const negUrl = `${baseUrl}/entry/${questionId}/${negId}`;
+        const posQr = await generateQrCode(posUrl, positiveOptions);
+        const negQr = await generateQrCode(negUrl, negativeOptions);
 
         entries = [
-          { id: positiveId, url: positiveQrUrl, question_id: questionId, value: 'positive' },
-          { id: negativeId, url: negativeQrUrl, question_id: questionId, value: 'negative' }
+          { id: posId, url: posQr, question_id: questionId, value: 'positive' },
+          { id: negId, url: negQr, question_id: questionId, value: 'negative' }
         ];
-      } else if (questionType === "rating") {
-        const ratingEntryId = crypto.randomUUID();
-        const ratingUrl = `${baseUrl}/entry/${questionId}/${ratingEntryId}`;
-        const ratingQrUrl = await generateQrCode(ratingUrl, ratingOptions);
+      } else {
+        const ratingId = crypto.randomUUID();
+        const ratingUrl = `${baseUrl}/entry/${questionId}/${ratingId}`;
+        const ratingQr = await generateQrCode(ratingUrl, ratingOptions);
 
         entries = [
-          { id: ratingEntryId, url: ratingQrUrl, question_id: questionId, value: 'rating' }
+          { id: ratingId, url: ratingQr, question_id: questionId, value: 'rating', short_code: customShortCode || null }
         ];
       }
 
@@ -222,7 +228,9 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
             description: newQuestionDesc,
             type: questionType,
             survey_id: surveyId,
+            short_code: customShortCode || null
           });
+
 
       if (questionError) throw questionError;
 
@@ -243,7 +251,7 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
 
       handleClose();
     } catch (error) {
-      console.error("Error creating question and QR codes:", error);
+      console.error("Creation error:", error);
       setError("Failed to create question. Please try again.");
     } finally {
       setIsCreating(false);
@@ -265,7 +273,6 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
               label="Question Description"
               value={newQuestionDesc}
               onChange={(e) => setNewQuestionDesc(e.target.value)}
-              placeholder="Enter question description"
               fullWidth
               margin="normal"
           />
@@ -281,6 +288,23 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
             <MenuItem value="binary">Binary (Yes / No)</MenuItem>
             <MenuItem value="rating">Rating</MenuItem>
           </TextField>
+
+          <TextField
+              label="Custom Short Code (optional)"
+              value={customShortCode}
+              onChange={(e) => setCustomShortCode(e.target.value.trim())}
+              fullWidth
+              margin="normal"
+              disabled={isCheckingCode}
+          />
+          <Button
+              variant="outlined"
+              size="small"
+              sx={{ mt: 1, mb: 2 }}
+              onClick={() => setCustomShortCode(Math.random().toString(36).substring(2, 8))}
+          >
+            Generate
+          </Button>
 
           <Box sx={{ mt: 3 }}>
             {questionType === "binary" ? (
