@@ -47,15 +47,17 @@ export default function Navigation({ onScrollToAction }: { onScrollToAction: (id
                         flexWrap: "wrap",
                     }}
                 >
-                    <Typography
-                        sx={{
-                            fontFamily: "Inter",
-                            fontSize: { xs: "24px", md: "32px" },
-                            color: "#211A1D",
-                        }}
-                    >
-                        Logo
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <img
+                            src="/logo.svg"
+                            alt="Logo"
+                            style={{
+                                height: "100px",
+                                objectFit: "contain",
+                            }}
+                        />
+                    </Box>
+
 
                     <Box
                         sx={{

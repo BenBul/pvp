@@ -3,8 +3,11 @@
 import React from "react";
 import { Box, Typography, Button } from "@mui/material";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import { useRouter } from "next/navigation";
 
 export default function CallToAction() {
+    const router = useRouter();
+
     return (
         <Box
             component="section"
@@ -55,6 +58,7 @@ export default function CallToAction() {
                 <Button
                     variant="contained"
                     endIcon={<ArrowForwardIcon />}
+                    onClick={() => router.push("/register")}
                     sx={{
                         px: 4,
                         py: 1.5,

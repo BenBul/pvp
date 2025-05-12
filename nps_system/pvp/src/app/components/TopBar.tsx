@@ -1,12 +1,9 @@
 'use client';
-
 import { AppBar, Toolbar, IconButton } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
-import { logout, session } from '@/supabase/client';
+import { logout } from '@/supabase/client';
 
 export default function TopBar() {
-    if (!session) return null;
-
     return (
         <AppBar
             position="fixed"
@@ -14,7 +11,8 @@ export default function TopBar() {
             sx={{
                 bgcolor: '#F8F0FB',
                 borderBottom: '1px solid #ddd',
-                color: 'black'
+                color: 'black',
+                zIndex: 1100, // virš Drawer jeigu reikia
             }}
         >
             <Toolbar sx={{ justifyContent: 'flex-end', minHeight: '69px !important' }}>
@@ -31,6 +29,5 @@ export default function TopBar() {
                 </IconButton>
             </Toolbar>
         </AppBar>
-
     );
 }

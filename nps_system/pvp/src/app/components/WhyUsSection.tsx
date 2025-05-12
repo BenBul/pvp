@@ -55,9 +55,9 @@ export default function WhyUsSection() {
                         lineHeight: "150%",
                     }}
                 >
-                    Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the
-                    industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type.
+                    NPS Systems is built for businesses that value actionable insights. Our platform offers real-time analytics, seamless QR-based survey distribution, and scalable tools for both customer and employee feedback. Whether you're measuring service quality, team engagement, or partner satisfaction – NPS Systems provides the clarity you need to drive strategic decisions.
                 </Typography>
+
             </Box>
 
             <Box
