@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { ThemeProvider } from "./theme";
 import CssBaseline from "@mui/material/CssBaseline";
 import HeaderManager from "./components/HeaderManager";
-import TopBar from "./components/TopBar"; // <- pridėta
+import MainWrapper from "./components/MainWrapper";
 
 export const metadata = {
     title: "PVP NPS APP",
@@ -15,11 +15,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <body>
         <ThemeProvider>
             <CssBaseline />
-
             <HeaderManager />
-            <main style={{ marginTop: '69px', marginLeft: '100px' }}>
-                {children}
-            </main>
+            <MainWrapper>{children}</MainWrapper>
         </ThemeProvider>
         </body>
         </html>

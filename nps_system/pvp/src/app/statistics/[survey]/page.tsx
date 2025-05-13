@@ -3,11 +3,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import StatisticsTemplate from '@/app/components/dashboard/statistics/Template';
-import { 
-  List, 
+import {
+  List,
   ListItem,
-  ListItemButton, 
-  ListItemText, 
+  ListItemButton,
+  ListItemText,
   Box,
   FormControl,
   InputLabel,
@@ -29,6 +29,7 @@ import {
 import { supabase } from '@/supabase/client';
 import LoadingBox from '@/app/components/LoadingBox';
 import { useRouter } from "next/navigation";
+import { Slider } from '@mui/material';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -86,9 +87,9 @@ export default function SurveyStatisticsPage() {
     const [answers, setAnswers] = useState<IAnswer[]>([]);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
-    
+
     // Filter states
-    const [ratingFilter, setRatingFilter] = useState<string>('all');
+    const [ratingFilter, setRatingFilter] = useState<[number, number] | null>(null);
     const [responseFilter, setResponseFilter] = useState<string>('all');
     const [questionFilter, setQuestionFilter] = useState<string>('');
 
@@ -120,26 +121,24 @@ export default function SurveyStatisticsPage() {
     const filteredTableData = useMemo(() => {
         return tableData.filter(item => {
             // Filter by rating
-            if (ratingFilter !== 'all') {
+            if (ratingFilter !== null) {
                 if (item.rating === 'N/A') return false;
                 const rating = Number(item.rating);
-                
-                if (ratingFilter === '1-3' && (rating < 1 || rating > 3)) return false;
-                if (ratingFilter === '4-7' && (rating < 4 || rating > 7)) return false;
-                if (ratingFilter === '8-10' && (rating < 8 || rating > 10)) return false;
+                if (rating < ratingFilter[0] || rating > ratingFilter[1]) return false;
             }
-            
+
+
             // Filter by positive/negative response
             if (responseFilter !== 'all') {
                 if (responseFilter === 'positive' && item.ispositive !== 'Yes') return false;
                 if (responseFilter === 'negative' && item.ispositive !== 'No') return false;
             }
-            
+
             // Filter by question text
             if (questionFilter && !item.question.toLowerCase().includes(questionFilter.toLowerCase())) {
                 return false;
             }
-            
+
             return true;
         });
     }, [tableData, ratingFilter, responseFilter, questionFilter]);
@@ -188,7 +187,7 @@ export default function SurveyStatisticsPage() {
                 setLoading(true);
                 try {
                     const questions = await getQuestions();
-                    if (!questions) return; 
+                    if (!questions) return;
                     await getAllAnswers(questions);
                 } catch (error) {
                     console.error('Error fetching data:', error);
@@ -197,7 +196,7 @@ export default function SurveyStatisticsPage() {
                 }
             }
         };
-    
+
         fetchData();
     }, [survey]);
 
@@ -207,15 +206,15 @@ export default function SurveyStatisticsPage() {
 
     const processBinaryQuestionsData = () => {
         const binaryQuestions = questions.filter(q => q.type === 'binary');
-        
+
         const binaryData = binaryQuestions.map(question => {
             const questionAnswers = answers.filter(answer => answer.question_id === question.id);
             const positiveCount = questionAnswers.filter(a => a.ispositive).length;
             const negativeCount = questionAnswers.filter(a => a.ispositive === false).length;
-            
+
             return {
-                question: question.description.length > 20 
-                    ? question.description.substring(0, 20) + '...' 
+                question: question.description.length > 20
+                    ? question.description.substring(0, 20) + '...'
                     : question.description,
                 positiveCount,
                 negativeCount,
@@ -228,18 +227,18 @@ export default function SurveyStatisticsPage() {
 
     const processRatingQuestionsData = () => {
         const ratingQuestions = questions.filter(q => q.type === 'rating');
-        
+
         const ratingData = ratingQuestions.map(question => {
-            const questionAnswers = answers.filter(answer => 
+            const questionAnswers = answers.filter(answer =>
                 answer.question_id === question.id && answer.rating !== null && answer.rating !== undefined
             );
-            
+
             const totalRating = questionAnswers.reduce((sum, answer) => sum + (answer.rating || 0), 0);
             const avgRating = questionAnswers.length > 0 ? totalRating / questionAnswers.length : 0;
-            
+
             return {
-                question: question.description.length > 20 
-                    ? question.description.substring(0, 20) + '...' 
+                question: question.description.length > 20
+                    ? question.description.substring(0, 20) + '...'
                     : question.description,
                 averageRating: parseFloat(avgRating.toFixed(1)),
                 responseCount: questionAnswers.length
@@ -311,13 +310,13 @@ export default function SurveyStatisticsPage() {
             {
                 label: 'Positive',
                 data: binaryData.map(item => item.positiveCount),
-                backgroundColor: '#36A2EB', 
+                backgroundColor: '#36A2EB',
                 stack: 'Stack 0',
             },
             {
                 label: 'Negative',
                 data: binaryData.map(item => item.negativeCount),
-                backgroundColor: '#FF6384', 
+                backgroundColor: '#FF6384',
                 stack: 'Stack 0',
             }
         ],
@@ -329,8 +328,8 @@ export default function SurveyStatisticsPage() {
             {
                 label: 'Average Rating',
                 data: ratingData.map(item => item.averageRating),
-                backgroundColor: '#FFCE56', 
-                borderColor: '#FF9F40', 
+                backgroundColor: '#FFCE56',
+                borderColor: '#FF9F40',
                 borderWidth: 1,
             }
         ],
@@ -425,21 +424,28 @@ export default function SurveyStatisticsPage() {
             </Typography>
             <Grid container spacing={2} alignItems="center">
                 <Grid item xs={12} md={4}>
-                    <FormControl fullWidth size="small">
-                        <InputLabel id="rating-filter-label">Rating</InputLabel>
-                        <Select
-                            labelId="rating-filter-label"
-                            id="rating-filter"
-                            value={ratingFilter}
-                            label="Rating"
-                            onChange={(e) => setRatingFilter(e.target.value)}
-                        >
-                            <MenuItem value="all">All Ratings</MenuItem>
-                            <MenuItem value="1-3">Low (1-3)</MenuItem>
-                            <MenuItem value="4-7">Medium (4-7)</MenuItem>
-                            <MenuItem value="8-10">High (8-10)</MenuItem>
-                        </Select>
-                    </FormControl>
+                    <Typography gutterBottom>Rating Range</Typography>
+                    <Slider
+                        value={ratingFilter ?? [1, 5]}
+                        onChange={(_: Event, newValue: number | number[]) => {
+                            if (Array.isArray(newValue) && newValue.length === 2) {
+                                setRatingFilter([newValue[0], newValue[1]]);
+                            }
+                        }}
+                        valueLabelDisplay="auto"
+                        min={1}
+                        max={5}
+                        step={1}
+                        marks={[
+                            { value: 1, label: '1' },
+                            { value: 2, label: '2' },
+                            { value: 3, label: '3' },
+                            { value: 4, label: '4' },
+                            { value: 5, label: '5' },
+                        ]}
+                    />
+
+
                 </Grid>
                 <Grid item xs={12} md={4}>
                     <FormControl fullWidth size="small">
@@ -469,32 +475,32 @@ export default function SurveyStatisticsPage() {
                     />
                 </Grid>
             </Grid>
-            
+
             <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {ratingFilter !== 'all' && (
-                    <Chip 
-                        label={`Rating: ${ratingFilter}`} 
-                        onDelete={() => setRatingFilter('all')} 
-                        color="primary" 
-                        variant="outlined" 
+                {ratingFilter !== null && (
+                    <Chip
+                        label={`Rating: ${ratingFilter[0]}–${ratingFilter[1]}`}
+                        onDelete={() => setRatingFilter(null)}
+                        color="primary"
+                        variant="outlined"
                         size="small"
                     />
                 )}
                 {responseFilter !== 'all' && (
-                    <Chip 
-                        label={`Response: ${responseFilter === 'positive' ? 'Positive' : 'Negative'}`} 
-                        onDelete={() => setResponseFilter('all')} 
-                        color="primary" 
-                        variant="outlined" 
+                    <Chip
+                        label={`Response: ${responseFilter === 'positive' ? 'Positive' : 'Negative'}`}
+                        onDelete={() => setResponseFilter('all')}
+                        color="primary"
+                        variant="outlined"
                         size="small"
                     />
                 )}
                 {questionFilter && (
-                    <Chip 
-                        label={`Search: ${questionFilter}`} 
-                        onDelete={() => setQuestionFilter('')} 
-                        color="primary" 
-                        variant="outlined" 
+                    <Chip
+                        label={`Search: ${questionFilter}`}
+                        onDelete={() => setQuestionFilter('')}
+                        color="primary"
+                        variant="outlined"
                         size="small"
                     />
                 )}

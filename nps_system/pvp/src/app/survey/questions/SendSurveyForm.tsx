@@ -105,7 +105,7 @@ export default function SendSurveyForm({
             </Box>
 
             <TextField
-                label="Recipient email(s) – separate with commas"
+                label="Add recipient email(s) – separate with commas"
                 value={emailsInput}
                 onChange={(e) => {
                     setStatus("idle");

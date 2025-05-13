@@ -7,6 +7,12 @@ import SurveyHeader from './headers/SurveyHeader';
 export default function HeaderManager() {
     const pathname = usePathname();
 
+
+    if (pathname === '/login') {
+        return null;
+    }
+
+
     if (pathname === '/') {
         return (
             <Navigation
@@ -20,7 +26,7 @@ export default function HeaderManager() {
         );
     }
 
-    // Tik čia rodom SurveyHeader su TopBar
+
     if (
         pathname.startsWith('/survey') ||
         pathname.startsWith('/statistics') ||
