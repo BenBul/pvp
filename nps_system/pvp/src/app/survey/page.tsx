@@ -9,16 +9,20 @@ import {
   Container,
   Pagination,
   TextField,
-  InputAdornment
+  InputAdornment,
+  Tooltip,
+  CircularProgress
 } from '@mui/material';
 import {
   Add as AddIcon,
-  Search as SearchIcon
+  Search as SearchIcon,
+  FileDownload as FileDownloadIcon
 } from '@mui/icons-material';
 import FormDrawer from '@/app/components/dashboard/surveys/FormDrawer';
 import SurveyItemsList from '@/app/components/dashboard/surveys/SurveyItemList';
 import TopBar from '../components/TopBar';
-import { supabase, session, getCachedName, getUserName } from '@/supabase/client';
+import { supabase, getCachedName, getUserName } from '@/supabase/client';
+import { exportAllSurveysToCsv } from './data-export/exportUtils';
 
 interface SurveyItem {
   id: string;
@@ -46,6 +50,7 @@ export default function SurveysPage() {
   const [refresh, setRefresh] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [displayName, setDisplayName] = useState<string | null>(null);
+  const [exportLoading, setExportLoading] = useState(false);
   const pageSize = 10;
 
   useEffect(() => {
@@ -133,7 +138,7 @@ export default function SurveysPage() {
     }
   }, [searchQuery, surveyItems]);
 
-  const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+  const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value);
   };
 
@@ -143,6 +148,17 @@ export default function SurveysPage() {
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
+  };
+
+  const handleExportAllSurveys = async () => {
+    setExportLoading(true);
+    try {
+      await exportAllSurveysToCsv();
+    } catch (error) {
+      console.error("Error exporting all surveys:", error);
+    } finally {
+      setExportLoading(false);
+    }
   };
 
   return (
@@ -160,14 +176,27 @@ export default function SurveysPage() {
                     Manage your surveys and forms
                   </Typography>
                 </Box>
-                <Button
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                    sx={{ borderRadius: 28, bgcolor: 'main' }}
-                    onClick={() => setIsDrawerOpen(true)}
-                >
-                  Add form
-                </Button>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <Tooltip title="Export all surveys to CSV">
+                    <Button
+                        variant="outlined"
+                        startIcon={exportLoading ? <CircularProgress size={20} /> : <FileDownloadIcon />}
+                        onClick={handleExportAllSurveys}
+                        disabled={exportLoading || loading}
+                        sx={{ borderRadius: 28, bgcolor: 'transparent' }}
+                    >
+                      Export CSV
+                    </Button>
+                  </Tooltip>
+                  <Button
+                      variant="contained"
+                      startIcon={<AddIcon />}
+                      sx={{ borderRadius: 28, bgcolor: 'main' }}
+                      onClick={() => setIsDrawerOpen(true)}
+                  >
+                    Add form
+                  </Button>
+                </Box>
               </Box>
 
               <FormDrawer
@@ -200,7 +229,11 @@ export default function SurveysPage() {
                 />
               </Box>
 
-              <SurveyItemsList items={filteredItems} loading={loading} onSurveyClick={handleSurveyClick} />
+              <SurveyItemsList 
+                items={filteredItems} 
+                loading={loading} 
+                onSurveyClick={handleSurveyClick} 
+              />
 
               {filteredItems.length > 0 && (
                   <Box sx={{ mt: 4, width: '100%', display: 'flex', justifyContent: 'center', bgcolor: '#f5f0ff', py: 3 }}>
