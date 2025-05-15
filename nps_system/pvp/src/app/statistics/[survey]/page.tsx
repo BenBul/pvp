@@ -15,7 +15,7 @@ import {
     BarElement,
     ArcElement,
     Title,
-    Tooltip,
+    Tooltip as ChartTooltip,
     Legend,
     Filler
 } from 'chart.js';
@@ -24,9 +24,12 @@ import BinaryQuestionsChart from '@/app/components/dashboard/statistics/charts/B
 import NPSScoreChart from '@/app/components/dashboard/statistics/charts/NPSScoreChart';
 import QuestionsList from '@/app/components/dashboard/statistics/sidebar/QuestionsList';
 import ResponsesTable from '@/app/components/dashboard/statistics/tables/ResponsesTable';
-
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { processBinaryQuestionsData, processComprehensiveNPSData, createTableData } from '@/utils/surveyData';
 import { applyFilters } from '@/utils/filterUtils';
+import { exportSurveyToCsv } from '@/utils/exportUtils';
+import { Button, CircularProgress } from '@mui/material';
+
 ChartJS.register(
     CategoryScale,
     LinearScale,
@@ -35,7 +38,7 @@ ChartJS.register(
     BarElement,
     ArcElement,
     Title,
-    Tooltip,
+    ChartTooltip,
     Legend,
     Filler
 );
@@ -69,6 +72,8 @@ export default function SurveyStatisticsPage() {
     const [questions, setQuestions] = useState<IQuestion[]>([]);
     const [answers, setAnswers] = useState<IAnswer[]>([]);
     const [loading, setLoading] = useState(true);
+    const [surveyTitle, setSurveyTitle] = useState('Survey Analysis');
+    const [exporting, setExporting] = useState(false);
     const router = useRouter();
 
     // Filter states
@@ -85,6 +90,19 @@ export default function SurveyStatisticsPage() {
         { key: 'input', label: 'Input' },
     ];
 
+    const handleExportSurvey = async () => {
+        if (!survey) return;
+        
+        setExporting(true);
+        try {
+            await exportSurveyToCsv(survey as string, surveyTitle);
+        } catch (error) {
+            console.error('Error exporting survey:', error);
+        } finally {
+            setExporting(false);
+        }
+    };
+
     const handleOpenQuestionStatistics = (questionId: string) => {
         router.push(`/statistics/${survey}/${questionId}`);
     };
@@ -98,9 +116,19 @@ export default function SurveyStatisticsPage() {
 
     const getQuestions = async () => {
         try {
+            const { data: surveyData, error: surveyError } = await supabase
+                .from('surveys')
+                .select('title')
+                .eq('id', survey)
+                .single();
+                
+            if (surveyData?.title) {
+                setSurveyTitle(surveyData.title);
+            }
+            
             const { data, error } = await supabase
                 .from('questions')
-                .select('id, description, type, isDeleted:is_deleted')
+                .select('id, description, type, isDeleted:is_deleted, created_at')
                 .eq('survey_id', survey)
                 .returns<IQuestion[]>();
             if (error) {
@@ -157,11 +185,9 @@ export default function SurveyStatisticsPage() {
         return <LoadingBox />;
     }
 
-    // Process data for charts
     const binaryData = processBinaryQuestionsData(questions, answers);
     const npsData = processComprehensiveNPSData(questions, answers);
 
-    // Use our ResponsesTable component instead of custom table
     const responsesTable = (
         <ResponsesTable
             headers={headers}
@@ -170,6 +196,7 @@ export default function SurveyStatisticsPage() {
             responseFilter={responseFilter}
             questionFilter={questionFilter}
             ratingRangeFilter={ratingRangeFilter}
+            surveyTitle={surveyTitle}
             onRatingFilterChange={setRatingFilter}
             onResponseFilterChange={setResponseFilter}
             onQuestionFilterChange={setQuestionFilter}
@@ -181,11 +208,12 @@ export default function SurveyStatisticsPage() {
         <StatisticsTemplate
             headers={headers}
             data={filteredTableData}
+            title={surveyTitle} 
             chart1={
                 <BinaryQuestionsChart binaryData={binaryData} />
             }
             chart2={
-                <NPSScoreChart npsData={npsData} />
+                <NPSScoreChart npsData={npsData} surveyTitle={surveyTitle}/>
             }
             sidebar={
                 <QuestionsList 
@@ -194,6 +222,24 @@ export default function SurveyStatisticsPage() {
                 />
             }
             customTable={responsesTable}
+            actions={
+                <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<FileDownloadIcon />}
+                    onClick={handleExportSurvey}
+                    disabled={exporting}
+                >
+                    {exporting ? (
+                        <>
+                            <CircularProgress size={20} color="inherit" sx={{ mr: 1 }} />
+                            Exporting...
+                        </>
+                    ) : (
+                        'Export Survey'
+                    )}
+                </Button>
+            }
         />
     );
 }

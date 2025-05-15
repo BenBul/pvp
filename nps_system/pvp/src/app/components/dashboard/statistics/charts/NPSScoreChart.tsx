@@ -1,16 +1,31 @@
-import React from 'react';
-import { Box, Typography, Chip } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Typography, Chip, Tooltip, Button, CircularProgress } from '@mui/material';
 import { Chart } from 'react-chartjs-2';
 import { NPSData } from '../../../../types/survey';
 import { createNPSChartConfig } from '@/utils/npsChartConfig'; 
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import { exportNPSDataToCsv } from '@/utils/exportUtils';
 
 interface NPSScoreChartProps {
     npsData: NPSData[];
+    surveyTitle: string;
 }
 
-const NPSScoreChart: React.FC<NPSScoreChartProps> = ({ npsData }) => {
+const NPSScoreChart: React.FC<NPSScoreChartProps> = ({ npsData, surveyTitle }) => {
+    const [exporting, setExporting] = useState(false);
     const chartConfig = createNPSChartConfig(npsData);
     
+    const handleExport = async () => {
+        setExporting(true);
+        try {
+            await exportNPSDataToCsv(npsData, surveyTitle);
+        } catch (error) {
+            console.error('Error exporting NPS data:', error);
+        } finally {
+            setExporting(false);
+        }
+    };
+
     return (
         <Box sx={{ 
             height: '100%', 
@@ -18,9 +33,31 @@ const NPSScoreChart: React.FC<NPSScoreChartProps> = ({ npsData }) => {
             display: 'flex', 
             flexDirection: 'column'
         }}>
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>
-                NPS Score Distribution (All Questions)
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                <Typography variant="subtitle1" fontWeight="bold">
+                    NPS Score Distribution (All Questions)
+                </Typography>
+                {npsData.length > 0 && (
+                    <Tooltip title="Export NPS data to CSV">
+                        <Button
+                            size="small"
+                            variant="outlined"
+                            startIcon={exporting ? <CircularProgress size={16} /> : <FileDownloadIcon />}
+                            onClick={handleExport}
+                            disabled={exporting}
+                            sx={{ 
+                                py: 0.5, 
+                                minWidth: 'auto', 
+                                fontSize: '0.7rem',
+                                height: 24
+                            }}
+                        >
+                            CSV
+                        </Button>
+                    </Tooltip>
+                )}
+            </Box>
+
             {npsData.length > 0 ? (
                 <Box sx={{ 
                     flex: 1, 

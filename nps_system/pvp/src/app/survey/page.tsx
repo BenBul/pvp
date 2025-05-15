@@ -22,7 +22,7 @@ import FormDrawer from '@/app/components/dashboard/surveys/FormDrawer';
 import SurveyItemsList from '@/app/components/dashboard/surveys/SurveyItemList';
 import TopBar from '../components/TopBar';
 import { supabase, getCachedName, getUserName } from '@/supabase/client';
-import { exportAllSurveysToCsv } from './data-export/exportUtils';
+import { exportAllSurveysToCsv } from '@/utils/exportUtils';
 
 interface SurveyItem {
   id: string;
