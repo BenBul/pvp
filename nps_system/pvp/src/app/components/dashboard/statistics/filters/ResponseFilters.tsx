@@ -48,7 +48,7 @@ const ResponseFilters: React.FC<ResponseFiltersProps> = ({
     };
     
     return (
-        <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
+        <Paper elevation={2} sx={{ p: 2, mb: 3  }}>
             <Typography variant="h6" gutterBottom>
                 Filter Responses
             </Typography>

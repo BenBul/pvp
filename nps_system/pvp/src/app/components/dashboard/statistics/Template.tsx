@@ -25,6 +25,8 @@ const StatisticsTemplate: React.FC<StatisticsTemplateProps> = ({
     return (
         <Box
             sx={{
+                marginBottom: 5,
+                marginTop: 5,
                 height: '100vh',
                 p: { xs: 1, sm: 2 },
                 display: 'flex',
@@ -47,6 +49,7 @@ const StatisticsTemplate: React.FC<StatisticsTemplateProps> = ({
                 <Grid item xs={12} md={6}>
                     <Paper
                         sx={{
+                            boxShadow: 3,
                             height: { xs: 200, md: 300 },
                             p: 2,
                             display: 'flex',
@@ -60,6 +63,7 @@ const StatisticsTemplate: React.FC<StatisticsTemplateProps> = ({
                 <Grid item xs={12} md={6}>
                     <Paper
                         sx={{
+                            boxShadow: 3,
                             height: { xs: 200, md: 300 },
                             p: 2,
                             display: 'flex',
@@ -82,6 +86,7 @@ const StatisticsTemplate: React.FC<StatisticsTemplateProps> = ({
                 <Paper
                     sx={{
                         flex: 1,
+                        border: '1px solid #ddd',
                         overflow: 'auto',
                         mb: { xs: 2, md: 0 },
                         mr: { md: sidebar ? 2 : 0 },
@@ -99,6 +104,7 @@ const StatisticsTemplate: React.FC<StatisticsTemplateProps> = ({
                                             <TableCell
                                                 key={header.key}
                                                 sx={{
+                                                    
                                                     fontWeight: 'bold',
                                                     backgroundColor: '#f5f5f5',
                                                 }}
@@ -124,6 +130,7 @@ const StatisticsTemplate: React.FC<StatisticsTemplateProps> = ({
                 {sidebar && (
                     <Box
                         sx={{
+                            boxShadow: 3,
                             borderRadius: 2,
                             width: { xs: '100%', md: 300 },
                             bgcolor: 'background.paper',

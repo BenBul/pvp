@@ -11,7 +11,7 @@ const QuestionsList: React.FC<QuestionsListProps> = ({ questions, onQuestionClic
     return (
         <List>
             {questions.map((question) => (
-                <ListItem key={question.id}>
+                <ListItem key={question.id} >
                     <ListItemButton onClick={() => onQuestionClick(question.id)}>
                         <ListItemText primary={question.description} secondary={question.type} />
                         {question.isDeleted && (
