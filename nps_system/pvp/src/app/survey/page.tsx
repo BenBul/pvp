@@ -37,6 +37,7 @@ interface SurveyItem {
   createdAt?: string;
   positiveVotes?: number;
   negativeVotes?: number;
+  questionCount?: number;
 }
 
 export default function SurveysPage() {
@@ -67,7 +68,7 @@ export default function SurveysPage() {
 
         const { data: rawSurveyItems } = await supabase
             .from('surveys')
-            .select('*')
+            .select('*, questions(*)')
             .order('created_at', { ascending: false })
             .range(from, to);
 
@@ -107,6 +108,7 @@ export default function SurveysPage() {
             createdAt: item.created_at,
             hasWarning: Math.random() > 0.7,
             distance: Math.floor(Math.random() * 50),
+            questionCount: item.questions.length || 0,
           };
         });
 

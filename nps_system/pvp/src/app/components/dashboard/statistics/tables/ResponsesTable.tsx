@@ -60,6 +60,7 @@ const ResponsesTable: React.FC<ResponsesTableProps> = ({
     return (
         <>
             <Box sx={{ 
+
                 display: 'flex', 
                 justifyContent: 'space-between', 
                 alignItems: 'flex-start',

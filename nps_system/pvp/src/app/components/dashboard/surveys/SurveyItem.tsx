@@ -18,6 +18,7 @@ interface SurveyItemProps {
     hasWarning?: boolean;
     positiveVotes?: number;
     negativeVotes?: number;
+    questionCount?: number;
   };
   onClick: (surveyId: string) => void;
 }
@@ -80,18 +81,9 @@ const SurveyItem: React.FC<SurveyItemProps> = ({ item, onClick }) => {
         </Box>
       </Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography variant="body2" sx={{ mr: 1 }}>
-            {item.positiveVotes}
+          <Typography variant="body1" color='main' sx={{ mr: 1 }}>
+            {item.questionCount} Questions
           </Typography>
-          <KeyboardArrowUpIcon sx={{ color: 'text.secondary' }} />
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Typography variant="body2" sx={{ mr: 1 }}>
-            {item.negativeVotes}
-          </Typography>
-          <KeyboardArrowDownIcon sx={{ color: 'text.secondary' }} />
-        </Box>
       </Box>
     </Paper>
   );

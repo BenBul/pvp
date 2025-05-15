@@ -175,6 +175,7 @@ export default function SurveyPage() {
             color="primary"
             startIcon={<AddIcon />}
             onClick={openAddModal}
+            sx={{ borderRadius: 28 }}
           >
             Add Question
           </Button>

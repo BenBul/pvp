@@ -337,13 +337,14 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
         </DialogContent>
 
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={handleClose} variant="outlined" color="inherit">Cancel</Button>
+          <Button onClick={handleClose} variant="outlined" color="inherit" sx={{ borderRadius: 28}}>Cancel</Button>
           <Button
               onClick={handleCreateQuestion}
               disabled={isCreating || !newQuestionDesc.trim()}
               variant="contained"
               color="primary"
               startIcon={isCreating ? <CircularProgress size={20} color="inherit" /> : <CheckIcon />}
+              sx={{ borderRadius: 28, ml: 1 }}
           >
             {isCreating ? 'Creating...' : 'Create Question'}
           </Button>

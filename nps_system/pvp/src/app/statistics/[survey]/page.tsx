@@ -229,6 +229,7 @@ export default function SurveyStatisticsPage() {
                     startIcon={<FileDownloadIcon />}
                     onClick={handleExportSurvey}
                     disabled={exporting}
+                    sx={{ borderRadius: 28 }}
                 >
                     {exporting ? (
                         <>

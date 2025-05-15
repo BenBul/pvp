@@ -15,6 +15,7 @@ interface SurveyItem {
   createdAt?: string;
   positiveVotes?: number;
   negativeVotes?: number;
+  questionCount?: number;
 }
 
 interface SurveyItemsListProps {

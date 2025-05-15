@@ -91,7 +91,7 @@ const QuestionsList: React.FC<QuestionsListProps> = ({
                     color="primary"
                     startIcon={<AddIcon />}
                     onClick={onAddQuestion}
-                    sx={{ mt: 2 }}
+                    sx={{ mt: 2, borderRadius: 28 }}
                   >
                     Add Your First Question
                   </Button>
