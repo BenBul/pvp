@@ -13,7 +13,7 @@ type QrCustomizationOptions = {
 type QrCustomizationSectionProps = {
     options: QrCustomizationOptions;
     setOptions: (options: QrCustomizationOptions) => void;
-    type: 'positive' | 'negative' | 'rating';
+    type: 'positive' | 'negative' | 'rating' | 'text';
     previewUrl: string | null;
     isLoading: boolean;
 };

@@ -1,18 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Box, 
   Typography, 
   Paper, 
   List, 
   Avatar, 
-  Chip 
+  Chip,
+  IconButton,
+  Tooltip,
+  CircularProgress
 } from '@mui/material';
 import { 
   BarChart as BarChartIcon, 
   Warning as WarningIcon, 
   KeyboardArrowUp as KeyboardArrowUpIcon, 
-  KeyboardArrowDown as KeyboardArrowDownIcon 
+  KeyboardArrowDown as KeyboardArrowDownIcon,
+  FileDownload as FileDownloadIcon
 } from '@mui/icons-material';
+import { exportSurveyToCsv } from '../data-export/exportUtils';
 
 interface SurveyItem {
   id: string;
@@ -40,6 +45,8 @@ export default function SurveyItemsList({
   loading, 
   onSurveyClick 
 }: SurveyItemsListProps) {
+  const [exportingId, setExportingId] = useState<string | null>(null);
+
   if (loading) {
     return <Typography>Loading...</Typography>;
   }
@@ -52,6 +59,19 @@ export default function SurveyItemsList({
     );
   }
 
+  const handleExportSurvey = async (event: React.MouseEvent, surveyId: string, title: string) => {
+    event.stopPropagation(); 
+    
+    setExportingId(surveyId);
+    try {
+      await exportSurveyToCsv(surveyId, title);
+    } catch (error) {
+      console.error("Error exporting survey:", error);
+    } finally {
+      setExportingId(null);
+    }
+  };
+
   return (
     <List sx={{ bgcolor: 'background.paper' }}>
       {items.map((item) => (
@@ -61,7 +81,6 @@ export default function SurveyItemsList({
           sx={{ 
             mb: 1, 
             p: 2, 
-            
             display: 'flex', 
             alignItems: 'center', 
             justifyContent: 'space-between',
@@ -113,16 +132,36 @@ export default function SurveyItemsList({
             </Box>
           </Box>
           <Box 
-            sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography variant="body2" sx={{ mr: 1 }}>{item.positiveVotes}</Typography>
+              <Typography variant="body2" sx={{ mr: 1 }}>{item.positiveVotes || 0}</Typography>
               <KeyboardArrowUpIcon sx={{ color: 'text.secondary' }} />
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography variant="body2" sx={{ mr: 1 }}>{item.negativeVotes}</Typography>
+              <Typography variant="body2" sx={{ mr: 1 }}>{item.negativeVotes || 0}</Typography>
               <KeyboardArrowDownIcon sx={{ color: 'text.secondary' }} />
             </Box>
+            <Tooltip title="Export survey to CSV">
+              <IconButton 
+                size="small"
+                color="primary"
+                onClick={(e) => handleExportSurvey(e, item.id, item.title)}
+                disabled={exportingId === item.id}
+                sx={{ 
+                  ml: 1,
+                  '&:hover': {
+                    backgroundColor: 'rgba(63, 81, 181, 0.08)'
+                  } 
+                }}
+              >
+                {exportingId === item.id ? (
+                  <CircularProgress size={20} />
+                ) : (
+                  <FileDownloadIcon fontSize="small" />
+                )}
+              </IconButton>
+            </Tooltip>
           </Box>
         </Paper>
       ))}

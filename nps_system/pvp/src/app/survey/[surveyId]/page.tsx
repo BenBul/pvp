@@ -9,16 +9,20 @@ import {
   Container,
   Typography,
   TextField,
-  InputAdornment
+  InputAdornment,
+  Tooltip,
+  CircularProgress
 } from '@mui/material';
 import { 
   Add as AddIcon,
-  Search as SearchIcon 
+  Search as SearchIcon,
+  FileDownload as FileDownloadIcon 
 } from '@mui/icons-material';
 
 import QuestionsList from '../questions/questionsList';
 import AddQuestionModal from '../questions/addQuestionModal';
 import QrViewDialog from '../questions/qrViewDialog';
+import { exportSurveyToCsv } from '../data-export/exportUtils';
 
 type Entry = {
   id: string;
@@ -37,7 +41,7 @@ type Question = {
   entries: Entry[];
 };
 
-type QrType = "positive" | "negative" | "rating";
+type QrType = "positive" | "negative" | "rating" | "text";
 
 type QrDialogState = {
   open: boolean;
@@ -56,6 +60,7 @@ export default function SurveyPage() {
   const [error, setError] = useState("");
   const [surveyTitle, setSurveyTitle] = useState("Loading...");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
   const [qrViewDialog, setQrViewDialog] = useState<QrDialogState>({
     open: false,
     url: null,
@@ -101,7 +106,6 @@ export default function SurveyPage() {
     }
   }, [surveyId]);
 
-  // Effect to filter questions when search query changes
   useEffect(() => {
     if (searchQuery.trim() === '') {
       setFilteredQuestions(questions);
@@ -133,6 +137,19 @@ export default function SurveyPage() {
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
+  };
+
+  const handleExportSurvey = async () => {
+    if (!surveyId || !surveyTitle) return;
+    
+    setExportLoading(true);
+    try {
+      await exportSurveyToCsv(surveyId, surveyTitle);
+    } catch (error) {
+      console.error("Error exporting survey:", error);
+    } finally {
+      setExportLoading(false);
+    }
   };
 
   const openAddModal = () => {
@@ -167,14 +184,27 @@ export default function SurveyPage() {
         <Box>
           <Typography variant="h4" component="h1" fontWeight="bold">{surveyTitle}</Typography>
         </Box>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={openAddModal}
-        >
-          Add Question
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Tooltip title="Export survey data to CSV">
+            <Button
+              variant="outlined"
+              color="primary"
+              startIcon={exportLoading ? <CircularProgress size={20} /> : <FileDownloadIcon />}
+              onClick={handleExportSurvey}
+              disabled={exportLoading || isLoading}
+            >
+              Export CSV
+            </Button>
+          </Tooltip>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={openAddModal}
+          >
+            Add Question
+          </Button>
+        </Box>
       </Box>
 
       <Box sx={{ mb: 4 }}>
