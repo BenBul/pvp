@@ -37,7 +37,7 @@ type Question = {
   entries: Entry[];
 };
 
-type QrType = "positive" | "negative" | "rating";
+type QrType = "positive" | "negative" | "rating" | "text";
 
 type QrDialogState = {
   open: boolean;

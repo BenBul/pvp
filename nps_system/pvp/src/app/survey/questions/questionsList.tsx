@@ -38,7 +38,7 @@ type QuestionsListProps = {
     questions: Question[];
     isLoading: boolean;
     onAddQuestion: () => void;
-    onOpenQrDialog: (url: string, type: 'positive' | 'negative' | 'rating') => void;
+    onOpenQrDialog: (url: string, type: 'positive' | 'negative' | 'rating' | 'text') => void;
     onQuestionDeleted: (questionId: string) => void;
 };
 
