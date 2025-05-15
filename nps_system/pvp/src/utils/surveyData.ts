@@ -1,4 +1,4 @@
-import { IQuestion, IAnswer, NPSData, BinaryData, TableData } from '@/types/survey';
+import { IQuestion, IAnswer, NPSData, BinaryData, TableData } from '../app/types/survey';
 
 export const processBinaryQuestionsData = (
     questions: IQuestion[], 

@@ -1,3 +1,4 @@
+import { NPSData, TableData } from '@/app/types/survey';
 import { supabase } from '@/supabase/client';
 
 type Answer = {
@@ -181,3 +182,68 @@ export const exportAllSurveysToCsv = async (): Promise<boolean> => {
     return false;
   }
 };
+
+export const exportNPSDataToCsv = (
+  npsData: NPSData[],
+  surveyTitle: string
+): boolean => {
+  try {
+    let csvContent = "Question,Question Type,NPS Score,Promoters(%),Promoters Count,Passives(%),Passives Count,Detractors(%),Detractors Count,Total Responses\n";
+    
+    npsData.forEach(item => {
+      const escapedQuestion = `"${item.question.replace(/"/g, '""')}"`;
+      
+      csvContent += `${escapedQuestion},${item.questionType},${item.npsScore},${item.promoterPercentage},${item.promoters},${item.passivePercentage},${item.passives},${item.detractorPercentage},${item.detractors},${item.responseCount}\n`;
+    });
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${surveyTitle.replace(/\s+/g, '_')}_nps_data_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    return true;
+  } catch (error) {
+    console.error("Error exporting NPS data:", error);
+    return false;
+  }
+};
+
+export const exportResponsesToCsv = (
+  filteredData: TableData[],
+  surveyTitle: string
+): boolean => {
+  try {
+    // Create CSV headers
+    let csvContent = "Question,Date,Positive,Rating,Input\n";
+    
+    // Add each row
+    filteredData.forEach(row => {
+      const escapedQuestion = `"${row.question.replace(/"/g, '""')}"`;
+      const escapedInput = row.input !== 'N/A' ? `"${row.input.toString().replace(/"/g, '""')}"` : 'N/A';
+      const createdDate = new Date(row.created_at).toLocaleDateString();
+
+      csvContent += `${escapedQuestion},${createdDate},${row.ispositive},${row.rating},${escapedInput}\n`;
+    });
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${surveyTitle.replace(/\s+/g, '_')}_responses_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    return true;
+  } catch (error) {
+    console.error("Error exporting responses:", error);
+    return false;
+  }
+};
+

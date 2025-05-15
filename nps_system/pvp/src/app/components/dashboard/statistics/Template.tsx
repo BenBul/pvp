@@ -1,13 +1,15 @@
 import React from 'react';
-import { Box, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { Box, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
 
 interface StatisticsTemplateProps {
-    headers: { key: string; label: string }[]; // Array of key-label pairs for table headers
-    data: Record<string, any>[]; // Array of objects for table rows
-    chart1?: React.ReactNode; // Slot for the first chart
-    chart2?: React.ReactNode; // Slot for the second chart
-    sidebar?: React.ReactNode; // Optional sidebar for the right of the table
-    customTable?: React.ReactNode; // Optional custom table implementation
+    headers: { key: string; label: string }[]; 
+    data: Record<string, any>[]; 
+    chart1?: React.ReactNode; 
+    chart2?: React.ReactNode; 
+    sidebar?: React.ReactNode;
+    customTable?: React.ReactNode; 
+    actions?: React.ReactNode; 
+    title?: string; 
 }
 
 const StatisticsTemplate: React.FC<StatisticsTemplateProps> = ({ 
@@ -16,7 +18,9 @@ const StatisticsTemplate: React.FC<StatisticsTemplateProps> = ({
     chart1, 
     chart2, 
     sidebar,
-    customTable 
+    customTable,
+    actions,
+    title = 'Statistics'
 }) => {
     return (
         <Box
@@ -25,9 +29,20 @@ const StatisticsTemplate: React.FC<StatisticsTemplateProps> = ({
                 p: { xs: 1, sm: 2 },
                 display: 'flex',
                 flexDirection: 'column',
-                ml: { md: '100px' }, // 💥 ŠITAS PRIDĖTA – kad kompensuotų Drawer
+                ml: { md: '100px' },
             }}
         >
+            <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                mb: 2,
+                px: 1
+            }}>
+                <Typography variant="h5">{title}</Typography>
+                {actions}
+            </Box>
+            
             <Grid container spacing={2} sx={{ mb: 2 }}>
                 <Grid item xs={12} md={6}>
                     <Paper

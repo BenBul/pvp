@@ -17,7 +17,7 @@ import {
   KeyboardArrowDown as KeyboardArrowDownIcon,
   FileDownload as FileDownloadIcon
 } from '@mui/icons-material';
-import { exportSurveyToCsv } from '../data-export/exportUtils';
+import { exportSurveyToCsv } from '@/utils/exportUtils';
 
 interface SurveyItem {
   id: string;

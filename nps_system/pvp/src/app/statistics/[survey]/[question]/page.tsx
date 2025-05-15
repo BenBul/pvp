@@ -1,9 +1,9 @@
 'use client';
 
-import QuestionTemplate from "@/app/components/dashboard/statistics/QuestionTemplate";
 import React, { useEffect, useState, useMemo } from "react";
-import { supabase } from '@/supabase/client';
 import { useParams } from "next/navigation";
+import { supabase } from '@/supabase/client';
+import QuestionTemplate from "@/app/components/dashboard/statistics/QuestionTemplate";
 import LoadingBox from "@/app/components/LoadingBox";
 import { Line, Bar, Pie } from 'react-chartjs-2';
 import {
@@ -15,7 +15,7 @@ import {
     BarElement,
     ArcElement,
     Title,
-    Tooltip,
+    Tooltip as ChartTooltip,
     Legend,
     Filler
 } from 'chart.js';
@@ -29,8 +29,12 @@ import {
     Select,
     MenuItem,
     TextField,
-    Chip
+    Chip,
+    Button,
+    CircularProgress,
+    Tooltip as MuiTooltip
 } from "@mui/material";
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 
 ChartJS.register(
     CategoryScale,
@@ -40,7 +44,7 @@ ChartJS.register(
     BarElement,
     ArcElement,
     Title,
-    Tooltip,
+    ChartTooltip,
     Legend,
     Filler
 );
@@ -74,6 +78,7 @@ type TextTableRow = {
 export default function QuestionStatistics() {
     const params = useParams();
     const questionId = params.question as string;
+    const surveyId = params.survey as string;
 
     const [questionType, setQuestionType] = useState('');
     const [loading, setLoading] = useState(true);
@@ -81,7 +86,10 @@ export default function QuestionStatistics() {
     const [tableData, setTableData] = useState<BinaryTableRow[]>([]);
     const [ratingTableData, setRatingTableData] = useState<RatingTableRow[]>([]);
     const [textTableData, setTextTableData] = useState<TextTableRow[]>([]);
+    const [questionTitle, setQuestionTitle] = useState('Question Statistics');
+    const [exporting, setExporting] = useState(false);
 
+    // Filter states
     const [responseFilter, setResponseFilter] = useState<string>('all');
     const [startDateStr, setStartDateStr] = useState<string>('');
     const [endDateStr, setEndDateStr] = useState<string>('');
@@ -94,23 +102,36 @@ export default function QuestionStatistics() {
 
         const fetchData = async () => {
             setLoading(true);
-            const { data: typeData } = await supabase
+            const { data: questionData, error: questionError } = await supabase
                 .from('questions')
-                .select('type')
+                .select('type, description')
                 .eq('id', questionId)
                 .single();
 
-            setQuestionType(typeData?.type || '');
+            if (questionError) {
+                console.error('Error fetching question:', questionError);
+                setLoading(false);
+                return;
+            }
 
-            const { data: answersData } = await supabase
+            setQuestionType(questionData?.type || '');
+            setQuestionTitle(questionData?.description || 'Question Statistics');
+
+            const { data: answersData, error: answersError } = await supabase
                 .from('answers')
                 .select('rating, created_at, input, ispositive')
                 .eq('question_id', questionId)
                 .returns<IAnswer[]>();
 
+            if (answersError) {
+                console.error('Error fetching answers:', answersError);
+                setLoading(false);
+                return;
+            }
+
             setAnswers(answersData || []);
 
-            if (typeData?.type === 'binary') {
+            if (questionData?.type === 'binary') {
                 const binaryData = (answersData || []).map(ans => ({
                     created_at: new Date(ans.created_at).toLocaleString(),
                     ispositive: ans.ispositive ? 'Positive' : 'Negative',
@@ -119,7 +140,7 @@ export default function QuestionStatistics() {
                 setTableData(binaryData);
             }
 
-            if (typeData?.type === 'rating') {
+            if (questionData?.type === 'rating') {
                 const ratingData = (answersData || [])
                     .filter(ans => typeof ans.rating === 'number')
                     .map(ans => ({
@@ -131,7 +152,7 @@ export default function QuestionStatistics() {
                 setRatingTableData(ratingData);
             }
 
-            if (typeData?.type === 'text') {
+            if (questionData?.type === 'text') {
                 const textData = (answersData || [])
                     .filter(ans => ans.input && ans.input.trim() !== '')
                     .map(ans => ({
@@ -147,6 +168,55 @@ export default function QuestionStatistics() {
 
         fetchData();
     }, [questionId]);
+
+    const handleExportToCsv = async () => {
+        setExporting(true);
+        try {
+            let filename = `${questionTitle.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}`;
+            let csvContent = "";
+            
+            // Create different CSV content based on question type
+            if (questionType === 'binary') {
+                csvContent = "Response,Date\n";
+                filteredTableData.forEach(row => {
+                    csvContent += `${row.ispositive},${new Date(row.date).toLocaleDateString()}\n`;
+                });
+                filename += "_binary_responses.csv";
+            } 
+            else if (questionType === 'rating') {
+                csvContent = "Rating,Date,Comment\n";
+                filteredRatingData.forEach(row => {
+                    const comment = row.input ? `"${row.input.replace(/"/g, '""')}"` : "";
+                    csvContent += `${row.rating},${new Date(row.date).toLocaleDateString()},${comment}\n`;
+                });
+                filename += "_rating_responses.csv";
+            } 
+            else if (questionType === 'text') {
+                csvContent = "Response,Date\n";
+                filteredTextData.forEach(row => {
+                    const cleanInput = `"${row.input.replace(/"/g, '""')}"`;
+                    csvContent += `${cleanInput},${new Date(row.date).toLocaleDateString()}\n`;
+                });
+                filename += "_text_responses.csv";
+            }
+            
+            // Create and trigger download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+        } catch (error) {
+            console.error("Error exporting question data:", error);
+        } finally {
+            setExporting(false);
+        }
+    };
 
     const filteredTableData = useMemo(() => {
         return tableData.filter(item => {
@@ -397,7 +467,28 @@ export default function QuestionStatistics() {
 
     const filterControls = (
         <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>Filter Responses</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h6">Filter Responses</Typography>
+                <MuiTooltip title="Export filtered responses to CSV">
+                    <span> {/* Wrapper needed for tooltip on disabled button */}
+                        <Button
+                            variant="outlined"
+                            color="primary"
+                            size="small"
+                            startIcon={exporting ? <CircularProgress size={20} /> : <FileDownloadIcon />}
+                            onClick={handleExportToCsv}
+                            disabled={exporting || (
+                                (questionType === 'binary' && filteredTableData.length === 0) ||
+                                (questionType === 'rating' && filteredRatingData.length === 0) ||
+                                (questionType === 'text' && filteredTextData.length === 0)
+                            )}
+                        >
+                            {exporting ? 'Exporting...' : 'Export to CSV'}
+                        </Button>
+                    </span>
+                </MuiTooltip>
+            </Box>
+            
             <Grid container spacing={2}>
                 {questionType === 'binary' && (
                     <Grid item xs={12} md={4}>
@@ -567,10 +658,10 @@ export default function QuestionStatistics() {
                     chart1={null}
                     chart2={null}
                     chart3={
-                    <Box sx={{ height: 300 }}>
-                        <Line data={textResponseCountData} options={options} />
-                    </Box>
-                }
+                        <Box sx={{ height: 300 }}>
+                            <Line data={textResponseCountData} options={options} />
+                        </Box>
+                    }
                     customTable={filterControls}
                 />
             </Box>

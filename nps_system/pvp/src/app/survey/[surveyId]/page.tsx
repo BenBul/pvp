@@ -22,7 +22,6 @@ import {
 import QuestionsList from '../questions/questionsList';
 import AddQuestionModal from '../questions/addQuestionModal';
 import QrViewDialog from '../questions/qrViewDialog';
-import { exportSurveyToCsv } from '../data-export/exportUtils';
 
 type Entry = {
   id: string;
@@ -60,7 +59,6 @@ export default function SurveyPage() {
   const [error, setError] = useState("");
   const [surveyTitle, setSurveyTitle] = useState("Loading...");
   const [showAddModal, setShowAddModal] = useState(false);
-  const [exportLoading, setExportLoading] = useState(false);
   const [qrViewDialog, setQrViewDialog] = useState<QrDialogState>({
     open: false,
     url: null,
@@ -139,19 +137,6 @@ export default function SurveyPage() {
     setSearchQuery(event.target.value);
   };
 
-  const handleExportSurvey = async () => {
-    if (!surveyId || !surveyTitle) return;
-    
-    setExportLoading(true);
-    try {
-      await exportSurveyToCsv(surveyId, surveyTitle);
-    } catch (error) {
-      console.error("Error exporting survey:", error);
-    } finally {
-      setExportLoading(false);
-    }
-  };
-
   const openAddModal = () => {
     setShowAddModal(true);
     document.body.style.overflow = 'hidden';
@@ -185,17 +170,6 @@ export default function SurveyPage() {
           <Typography variant="h4" component="h1" fontWeight="bold">{surveyTitle}</Typography>
         </Box>
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <Tooltip title="Export survey data to CSV">
-            <Button
-              variant="outlined"
-              color="primary"
-              startIcon={exportLoading ? <CircularProgress size={20} /> : <FileDownloadIcon />}
-              onClick={handleExportSurvey}
-              disabled={exportLoading || isLoading}
-            >
-              Export CSV
-            </Button>
-          </Tooltip>
           <Button
             variant="contained"
             color="primary"
