@@ -11,7 +11,7 @@ import { Close as CloseIcon, Download as DownloadIcon, Print as PrintIcon } from
 type QrViewDialogProps = {
     open: boolean;
     url: string | null;
-    type: 'positive' | 'negative' | 'rating';
+    type: 'positive' | 'negative' | 'rating' | 'text';
     onClose: () => void;
 };
 

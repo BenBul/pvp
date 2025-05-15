@@ -33,7 +33,7 @@ type QuestionItemProps = {
   question: Question;
   isLast: boolean;
   showDivider: boolean;
-  onOpenQrDialog: (url: string, type: 'positive' | 'negative' | 'rating') => void;
+  onOpenQrDialog: (url: string, type: 'positive' | 'negative' | 'rating' | 'text') => void;
   onDeleteQuestion: (questionId: string, description: string) => void;
 };
 
@@ -47,6 +47,7 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
   const positiveEntry = question.entries?.find(e => e.value === "positive");
   const negativeEntry = question.entries?.find(e => e.value === "negative");
   const ratingEntry = question.entries?.find(e => e.value === "rating");
+  const textEntry = question.entries?.find(e => e.value === "text");
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -120,6 +121,18 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
                     Rating QR
                   </Button>
               )}
+
+                {textEntry && (
+                    <Button
+                        onClick={() => onOpenQrDialog(textEntry.url, 'text')}
+                        variant="outlined"
+                        color="primary"
+                        size="small"
+                        startIcon={<QrCodeIcon />}
+                    >
+                        Text QR
+                    </Button>
+                )}
             </Box>
           </Box>
         </Box>
