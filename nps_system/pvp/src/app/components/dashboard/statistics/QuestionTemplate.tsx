@@ -20,30 +20,39 @@ interface QuestionTemplateProps {
     customTable?: React.ReactNode;
 }
 
-const QuestionTemplate: React.FC<QuestionTemplateProps> = ({ 
-    headers, 
-    data, 
-    chart1, 
-    chart2, 
-    chart3, 
-    customTable 
-}) => {
+const QuestionTemplate: React.FC<QuestionTemplateProps> = ({
+                                                               headers,
+                                                               data,
+                                                               chart1,
+                                                               chart2,
+                                                               chart3,
+                                                               customTable
+                                                           }) => {
     return (
         <Box sx={{ p: { xs: 1, sm: 2 }, display: 'flex', flexDirection: 'column' }}>
-            <Grid container spacing={2} sx={{ mb: 2 }}>
-                <Grid item xs={12} md={6}>
-                    <Paper sx={smallChartBoxStyle}>{chart1}</Paper>
+            {(chart1 || chart2 || chart3) && (
+                <Grid container spacing={2} sx={{ mb: 2 }}>
+                    {chart1 && (
+                        <Grid item xs={12} md={6}>
+                            <Paper sx={smallChartBoxStyle}>{chart1}</Paper>
+                        </Grid>
+                    )}
+                    {chart2 && (
+                        <Grid item xs={12} md={6}>
+                            <Paper sx={smallChartBoxStyle}>{chart2}</Paper>
+                        </Grid>
+                    )}
+                    {chart3 && (
+                        <Grid item xs={12}>
+                            <Paper sx={bigChartBoxStyle}>{chart3}</Paper>
+                        </Grid>
+                    )}
                 </Grid>
-                <Grid item xs={12} md={6}>
-                    <Paper sx={smallChartBoxStyle}>{chart2}</Paper>
-                </Grid>
-                <Grid item xs={12}>
-                    <Paper sx={bigChartBoxStyle}>{chart3}</Paper>
-                </Grid>
-            </Grid>
+            )}
+
             <Paper sx={{ flex: 1, overflow: 'auto', p: 2 }}>
                 {customTable}
-                
+
                 <TableContainer>
                     <Table stickyHeader>
                         <TableHead>

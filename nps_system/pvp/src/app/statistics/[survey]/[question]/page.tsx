@@ -62,6 +62,13 @@ type RatingTableRow = {
     created_at: string;
     rating: number;
     date: Date;
+    input?: string;
+};
+
+type TextTableRow = {
+    created_at: string;
+    input: string;
+    date: Date;
 };
 
 export default function QuestionStatistics() {
@@ -73,12 +80,14 @@ export default function QuestionStatistics() {
     const [answers, setAnswers] = useState<IAnswer[]>([]);
     const [tableData, setTableData] = useState<BinaryTableRow[]>([]);
     const [ratingTableData, setRatingTableData] = useState<RatingTableRow[]>([]);
+    const [textTableData, setTextTableData] = useState<TextTableRow[]>([]);
 
     const [responseFilter, setResponseFilter] = useState<string>('all');
     const [startDateStr, setStartDateStr] = useState<string>('');
     const [endDateStr, setEndDateStr] = useState<string>('');
     const [minRating, setMinRating] = useState<string>('');
     const [maxRating, setMaxRating] = useState<string>('');
+    const [textFilter, setTextFilter] = useState<string>('');
 
     useEffect(() => {
         if (!questionId) return;
@@ -122,6 +131,17 @@ export default function QuestionStatistics() {
                 setRatingTableData(ratingData);
             }
 
+            if (typeData?.type === 'text') {
+                const textData = (answersData || [])
+                    .filter(ans => ans.input && ans.input.trim() !== '')
+                    .map(ans => ({
+                        created_at: new Date(ans.created_at).toLocaleString(),
+                        input: ans.input || '',
+                        date: new Date(ans.created_at)
+                    }));
+                setTextTableData(textData);
+            }
+
             setLoading(false);
         };
 
@@ -153,21 +173,18 @@ export default function QuestionStatistics() {
 
     const filteredRatingData = useMemo(() => {
         return ratingTableData.filter(item => {
-            // Filter by start date
             if (startDateStr) {
                 const start = new Date(startDateStr);
                 start.setHours(0, 0, 0, 0);
                 if (item.date < start) return false;
             }
 
-            // Filter by end date
             if (endDateStr) {
                 const end = new Date(endDateStr);
                 end.setHours(23, 59, 59, 999);
                 if (item.date > end) return false;
             }
 
-            // Filter by rating range (min and max)
             if (minRating && item.rating < parseInt(minRating)) return false;
             if (maxRating && item.rating > parseInt(maxRating)) return false;
 
@@ -175,6 +192,27 @@ export default function QuestionStatistics() {
         });
     }, [ratingTableData, startDateStr, endDateStr, minRating, maxRating]);
 
+    const filteredTextData = useMemo(() => {
+        return textTableData.filter(item => {
+            if (startDateStr) {
+                const start = new Date(startDateStr);
+                start.setHours(0, 0, 0, 0);
+                if (item.date < start) return false;
+            }
+
+            if (endDateStr) {
+                const end = new Date(endDateStr);
+                end.setHours(23, 59, 59, 999);
+                if (item.date > end) return false;
+            }
+
+            if (textFilter && !item.input.toLowerCase().includes(textFilter.toLowerCase())) {
+                return false;
+            }
+
+            return true;
+        });
+    }, [textTableData, startDateStr, endDateStr, textFilter]);
 
     const processFilteredData = (data: BinaryTableRow[]) => {
         const grouped: Record<string, { trueCount: number; falseCount: number }> = {};
@@ -281,22 +319,6 @@ export default function QuestionStatistics() {
         };
     }, [filteredRatingData]);
 
-    const options = {
-        responsive: true,
-        maintainAspectRatio: false
-    };
-
-    const headers = [
-        { key: 'ispositive', label: 'Positive/Negative' },
-        { key: 'created_at', label: 'Date' },
-    ];
-
-    const ratingHeaders = [
-        { key: 'rating', label: 'Rating' },
-        { key: 'created_at', label: 'Date' },
-        { key: 'input', label: 'Comment' },
-    ];
-
     const cumulativeRatingData = useMemo(() => {
         const grouped: Record<string, number[]> = {};
         filteredRatingData.forEach(row => {
@@ -330,6 +352,48 @@ export default function QuestionStatistics() {
             }]
         };
     }, [filteredRatingData]);
+
+    const textResponseCountData = useMemo(() => {
+        const grouped: Record<string, number> = {};
+        filteredTextData.forEach(row => {
+            const date = row.date.toLocaleDateString();
+            grouped[date] = (grouped[date] || 0) + 1;
+        });
+
+        const sortedDates = Object.keys(grouped).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+
+        return {
+            labels: sortedDates,
+            datasets: [{
+                label: 'Text Responses Count',
+                data: sortedDates.map(date => grouped[date]),
+                backgroundColor: '#9C27B0',
+                borderColor: '#7B1FA2',
+                fill: false,
+            }]
+        };
+    }, [filteredTextData]);
+
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false
+    };
+
+    const headers = [
+        { key: 'ispositive', label: 'Positive/Negative' },
+        { key: 'created_at', label: 'Date' },
+    ];
+
+    const ratingHeaders = [
+        { key: 'rating', label: 'Rating' },
+        { key: 'created_at', label: 'Date' },
+        { key: 'input', label: 'Comment' },
+    ];
+
+    const textHeaders = [
+        { key: 'input', label: 'Response' },
+        { key: 'created_at', label: 'Date' },
+    ];
 
     const filterControls = (
         <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
@@ -379,7 +443,19 @@ export default function QuestionStatistics() {
                         </Grid>
                     </>
                 )}
-                <Grid item xs={12} md={questionType === 'binary' ? 4 : 6}>
+                {questionType === 'text' && (
+                    <Grid item xs={12}>
+                        <TextField
+                            label="Search Responses"
+                            fullWidth
+                            value={textFilter}
+                            onChange={(e) => setTextFilter(e.target.value)}
+                            InputLabelProps={{ shrink: true }}
+                            size="small"
+                        />
+                    </Grid>
+                )}
+                <Grid item xs={12} md={questionType === 'text' ? 6 : (questionType === 'binary' ? 4 : 6)}>
                     <TextField
                         label="Start Date"
                         type="date"
@@ -390,7 +466,7 @@ export default function QuestionStatistics() {
                         size="small"
                     />
                 </Grid>
-                <Grid item xs={12} md={questionType === 'binary' ? 4 : 6}>
+                <Grid item xs={12} md={questionType === 'text' ? 6 : (questionType === 'binary' ? 4 : 6)}>
                     <TextField
                         label="End Date"
                         type="date"
@@ -412,6 +488,9 @@ export default function QuestionStatistics() {
                 )}
                 {questionType === 'rating' && maxRating && (
                     <Chip label={`Max Rating: ${maxRating}`} onDelete={() => setMaxRating('')} />
+                )}
+                {questionType === 'text' && textFilter && (
+                    <Chip label={`Text: "${textFilter}"`} onDelete={() => setTextFilter('')} />
                 )}
                 {startDateStr && (
                     <Chip label={`From: ${new Date(startDateStr).toLocaleDateString()}`} onDelete={() => setStartDateStr('')} />
@@ -473,6 +552,25 @@ export default function QuestionStatistics() {
                             <Line data={cumulativeRatingData} options={options} />
                         </Box>
                     }
+                    customTable={filterControls}
+                />
+            </Box>
+        );
+    }
+
+    if (questionType === 'text') {
+        return (
+            <Box sx={{ ml: '240px', p: 2 }}>
+                <QuestionTemplate
+                    headers={textHeaders}
+                    data={filteredTextData}
+                    chart1={null}
+                    chart2={null}
+                    chart3={
+                    <Box sx={{ height: 300 }}>
+                        <Line data={textResponseCountData} options={options} />
+                    </Box>
+                }
                     customTable={filterControls}
                 />
             </Box>
