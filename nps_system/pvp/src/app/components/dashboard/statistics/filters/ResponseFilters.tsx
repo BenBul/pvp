@@ -12,23 +12,28 @@ import {
     Chip, 
     SelectChangeEvent 
 } from '@mui/material';
+import RatingSliderFilter from './RatingSliderFilter';
 
 interface ResponseFiltersProps {
     ratingFilter: string;
     responseFilter: string;
     questionFilter: string;
+    ratingRangeFilter: [number, number] | null;
     onRatingFilterChange: (value: string) => void;
     onResponseFilterChange: (value: string) => void;
     onQuestionFilterChange: (value: string) => void;
+    onRatingRangeFilterChange: (value: [number, number] | null) => void;
 }
 
 const ResponseFilters: React.FC<ResponseFiltersProps> = ({
     ratingFilter,
     responseFilter,
     questionFilter,
+    ratingRangeFilter,
     onRatingFilterChange,
     onResponseFilterChange,
-    onQuestionFilterChange
+    onQuestionFilterChange,
+    onRatingRangeFilterChange
 }) => {
     const handleRatingChange = (event: SelectChangeEvent) => {
         onRatingFilterChange(event.target.value);
@@ -49,21 +54,10 @@ const ResponseFilters: React.FC<ResponseFiltersProps> = ({
             </Typography>
             <Grid container spacing={2} alignItems="center">
                 <Grid item xs={12} md={4}>
-                    <FormControl fullWidth size="small">
-                        <InputLabel id="rating-filter-label">Rating</InputLabel>
-                        <Select
-                            labelId="rating-filter-label"
-                            id="rating-filter"
-                            value={ratingFilter}
-                            label="Rating"
-                            onChange={handleRatingChange}
-                        >
-                            <MenuItem value="all">All Ratings</MenuItem>
-                            <MenuItem value="1-3">Low (1-3)</MenuItem>
-                            <MenuItem value="4-7">Medium (4-7)</MenuItem>
-                            <MenuItem value="8-10">High (8-10)</MenuItem>
-                        </Select>
-                    </FormControl>
+                    <RatingSliderFilter 
+                        value={ratingRangeFilter} 
+                        onChange={onRatingRangeFilterChange} 
+                    />
                 </Grid>
                 <Grid item xs={12} md={4}>
                     <FormControl fullWidth size="small">
@@ -95,10 +89,10 @@ const ResponseFilters: React.FC<ResponseFiltersProps> = ({
             </Grid>
             
             <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {ratingFilter !== 'all' && (
+                {ratingRangeFilter !== null && (
                     <Chip 
-                        label={`Rating: ${ratingFilter}`} 
-                        onDelete={() => onRatingFilterChange('all')} 
+                        label={`Rating: ${ratingRangeFilter[0]}–${ratingRangeFilter[1]}`} 
+                        onDelete={() => onRatingRangeFilterChange(null)} 
                         color="primary" 
                         variant="outlined" 
                         size="small"

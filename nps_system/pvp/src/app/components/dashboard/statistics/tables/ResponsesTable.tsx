@@ -9,9 +9,11 @@ interface ResponsesTableProps {
     ratingFilter: string;
     responseFilter: string;
     questionFilter: string;
+    ratingRangeFilter: [number, number] | null;
     onRatingFilterChange: (value: string) => void;
     onResponseFilterChange: (value: string) => void;
     onQuestionFilterChange: (value: string) => void;
+    onRatingRangeFilterChange: (value: [number, number] | null) => void;
 }
 
 const ResponsesTable: React.FC<ResponsesTableProps> = ({
@@ -20,9 +22,11 @@ const ResponsesTable: React.FC<ResponsesTableProps> = ({
     ratingFilter,
     responseFilter,
     questionFilter,
+    ratingRangeFilter,
     onRatingFilterChange,
     onResponseFilterChange,
-    onQuestionFilterChange
+    onQuestionFilterChange,
+    onRatingRangeFilterChange
 }) => {
     return (
         <>
@@ -30,9 +34,11 @@ const ResponsesTable: React.FC<ResponsesTableProps> = ({
                 ratingFilter={ratingFilter}
                 responseFilter={responseFilter}
                 questionFilter={questionFilter}
+                ratingRangeFilter={ratingRangeFilter}
                 onRatingFilterChange={onRatingFilterChange}
                 onResponseFilterChange={onResponseFilterChange}
                 onQuestionFilterChange={onQuestionFilterChange}
+                onRatingRangeFilterChange={onRatingRangeFilterChange}
             />
             
             <TableContainer>
