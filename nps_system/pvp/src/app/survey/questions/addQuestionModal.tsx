@@ -34,7 +34,7 @@ interface QrOptions {
   enableLogo: boolean;
 }
 
-type EntryValue = 'positive' | 'negative' | 'rating';
+type EntryValue = 'positive' | 'negative' | 'rating' | 'text';
 
 interface Entry {
   id: string;
@@ -57,7 +57,7 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState("");
   const [newQuestionDesc, setNewQuestionDesc] = useState("");
-  const [questionType, setQuestionType] = useState<"binary" | "rating">("binary");
+  const [questionType, setQuestionType] = useState<"binary" | "rating" | "text">("binary");
   const [customShortCode, setCustomShortCode] = useState("");
   const [isCheckingCode, setIsCheckingCode] = useState(false);
 
@@ -82,17 +82,27 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
     enableLogo: false
   });
 
+  const [textOptions, setTextOptions] = useState<QrOptions>({
+    color: "#000000", 
+    body: "square", 
+    logo: "", 
+    enableLogo: false
+  });
+
   const [positiveQrPreview, setPositiveQrPreview] = useState<string | null>(null);
   const [negativeQrPreview, setNegativeQrPreview] = useState<string | null>(null);
   const [ratingQrPreview, setRatingQrPreview] = useState<string | null>(null);
+  const [textQrPreview, setTextQrPreview] = useState<string | null>(null);
 
   const [isLoadingPositiveQr, setIsLoadingPositiveQr] = useState(false);
   const [isLoadingNegativeQr, setIsLoadingNegativeQr] = useState(false);
   const [isLoadingRatingQr, setIsLoadingRatingQr] = useState(false);
+  const [isLoadingTextQr, setIsLoadingTextQr] = useState(false);
 
   const debouncedPositiveOptions = useDebounce(positiveOptions, 500);
   const debouncedNegativeOptions = useDebounce(negativeOptions, 500);
   const debouncedRatingOptions = useDebounce(ratingOptions, 500);
+  const debouncedTextOptions = useDebounce(textOptions, 500);
 
   const resetFormValues = () => {
     setNewQuestionDesc("");
@@ -101,9 +111,11 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
     setPositiveOptions({ color: "#008000", body: "square", logo: "", enableLogo: false });
     setNegativeOptions({ color: "#ff0000", body: "square", logo: "", enableLogo: false });
     setRatingOptions({ color: "#000000", body: "square", logo: "", enableLogo: false });
+    setTextOptions({ color: "#000000", body: "square", logo: "", enableLogo: false });
     setPositiveQrPreview(null);
     setNegativeQrPreview(null);
     setRatingQrPreview(null);
+    setTextQrPreview(null);
     setError("");
   };
 
@@ -136,6 +148,7 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
       if (type === 'positive') setIsLoadingPositiveQr(true);
       if (type === 'negative') setIsLoadingNegativeQr(true);
       if (type === 'rating') setIsLoadingRatingQr(true);
+      if (type === 'text') setIsLoadingTextQr(true);
 
       const baseUrl = typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}` : '';
       const demoUrl = `${baseUrl}/demo/${type}/${crypto.randomUUID()}`;
@@ -144,12 +157,14 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
       if (type === 'positive') setPositiveQrPreview(qrImageUrl);
       if (type === 'negative') setNegativeQrPreview(qrImageUrl);
       if (type === 'rating') setRatingQrPreview(qrImageUrl);
+      if (type === 'text') setTextQrPreview(qrImageUrl);
     } catch {
       setError("Failed to generate QR preview");
     } finally {
       if (type === 'positive') setIsLoadingPositiveQr(false);
       if (type === 'negative') setIsLoadingNegativeQr(false);
       if (type === 'rating') setIsLoadingRatingQr(false);
+      if (type === 'text') setIsLoadingTextQr(false);
     }
   }, []);
 
@@ -165,6 +180,12 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
       generateQrPreview(debouncedRatingOptions, 'rating');
     }
   }, [debouncedRatingOptions, open, questionType, generateQrPreview]);
+
+  useEffect(() => {
+    if (open && questionType === "text") {
+      generateQrPreview(debouncedTextOptions, 'text');
+    }
+  }, [debouncedTextOptions, open, questionType, generateQrPreview]);
 
   const handleCreateQuestion = async () => {
     if (!newQuestionDesc.trim()) {
@@ -210,12 +231,19 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
         entries = [
           { id: posId, url: posQr, question_id: questionId, value: 'positive' },
           { id: negId, url: negQr, question_id: questionId, value: 'negative' }
+        ]; 
+      } else if (questionType === "text") {
+        const textEntryId = crypto.randomUUID();
+        const textUrl = `${baseUrl}/entry/${questionId}/${textEntryId}`;
+        const textQrUrl = await generateQrCode(textUrl, textOptions);
+        entries = [
+          { id: textEntryId, url: textQrUrl, question_id: questionId, value: 'text' }
         ];
-      } else {
+      }
+      else {
         const ratingId = crypto.randomUUID();
         const ratingUrl = `${baseUrl}/entry/${questionId}/${ratingId}`;
         const ratingQr = await generateQrCode(ratingUrl, ratingOptions);
-
         entries = [
           { id: ratingId, url: ratingQr, question_id: questionId, value: 'rating' }
         ];
@@ -281,12 +309,13 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
               label="Question Type"
               select
               value={questionType}
-              onChange={(e) => setQuestionType(e.target.value as "binary" | "rating")}
+              onChange={(e) => setQuestionType(e.target.value as "binary" | "rating" | "text")}
               fullWidth
               margin="normal"
           >
             <MenuItem value="binary">Binary (Yes / No)</MenuItem>
             <MenuItem value="rating">Rating</MenuItem>
+            <MenuItem value="text">Text Response</MenuItem>
           </TextField>
 
           <TextField
@@ -324,13 +353,21 @@ const AddQuestionModal: React.FC<AddQuestionModalProps> = ({ open, onClose, surv
                       isLoading={isLoadingNegativeQr}
                   />
                 </>
-            ) : (
+            ) : questionType === "rating" ? (
                 <QrCustomizationSection
                     options={ratingOptions}
                     setOptions={setRatingOptions}
                     type="rating"
                     previewUrl={ratingQrPreview}
                     isLoading={isLoadingRatingQr}
+                />
+                ) : (
+                <QrCustomizationSection
+                    options={textOptions}
+                    setOptions={setTextOptions}
+                    type="text"
+                    previewUrl={textQrPreview}
+                    isLoading={isLoadingTextQr}
                 />
             )}
           </Box>
