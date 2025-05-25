@@ -1,35 +1,21 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { TextField, Container, Typography, Box } from '@mui/material';
+import {
+    TextField, Container, Typography, Box
+} from '@mui/material';
 import { getCachedName, getUserName, session, setCachedName, supabase } from '@/supabase/client';
 
 const ProfilePage = () => {
     const [name, setName] = useState('');
     const [initialName, setInitialName] = useState('');
     const [nameError, setNameError] = useState('');
-    const [organizationName, setOrganizationName] = useState('');
-    const [organizationNameError, setOrganizationNameError] = useState('');
-    const [message, setMessage] = useState('');
 
     useEffect(() => {
         const loadData = async () => {
             const fetchedName = getCachedName() || (await getUserName());
             setInitialName(fetchedName);
             setName(fetchedName);
-
-            const { data, error } = await supabase
-                .from('users')
-                .select('organization')
-                .eq('id', session?.user.id)
-                .single();
-
-            if (error) {
-                console.error('Error fetching organization name:', error);
-            } else {
-                setOrganizationName(data?.organization || '');
-            }
         };
-
         loadData();
     }, []);
 
@@ -43,55 +29,21 @@ const ProfilePage = () => {
         return '';
     };
 
-    const validateOrganizationName = (orgName: string): string => {
-        if (orgName.length > 30) {
-            return 'Organization name must be less than 30 characters long.';
-        }
-        return '';
-    };
-
     const saveName = async () => {
         const error = validateName(name);
         if (error) {
             setNameError(error);
             return;
         }
-
-        if (name === initialName) {
-            return;
-        }
-
+        if (name === initialName) return;
         setNameError('');
-
         const { error: saveError } = await supabase
             .from('users')
             .update({ name })
             .eq('id', session?.user.id);
-
-        if (saveError) {
-            console.error('Error saving name:', saveError);
-        } else {
+        if (!saveError) {
             setInitialName(name);
             setCachedName(name);
-        }
-    };
-
-    const saveOrganizationName = async () => {
-        const error = validateOrganizationName(organizationName);
-        if (error) {
-            setOrganizationNameError(error);
-            return;
-        }
-
-        setOrganizationNameError('');
-
-        const { error: saveError } = await supabase
-            .from('users')
-            .update({ organization: organizationName })
-            .eq('id', session?.user.id);
-
-        if (saveError) {
-            console.error('Error saving organization name:', saveError);
         }
     };
 
@@ -121,27 +73,7 @@ const ProfilePage = () => {
                     sx={{
                         borderRadius: 28,
                         bgcolor: '#f5f5f5',
-                        '&:hover': {
-                            bgcolor: '#f0f0f0',
-                        },
-                    }}
-                />
-                <TextField
-                    label="Organization Name"
-                    variant="outlined"
-                    fullWidth
-                    value={organizationName}
-                    error={!!organizationNameError}
-                    helperText={organizationNameError}
-                    onChange={(e) => setOrganizationName(e.target.value)}
-                    onBlur={saveOrganizationName}
-                    sx={{
-                        borderRadius: 28,
-                        bgcolor: '#f5f5f5',
-                        '&:hover': {
-                            bgcolor: '#f0f0f0',
-                        },
-                        marginTop: '1rem',
+                        '&:hover': { bgcolor: '#f0f0f0' },
                     }}
                 />
             </Box>
