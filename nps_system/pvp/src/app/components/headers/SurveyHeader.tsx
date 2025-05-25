@@ -16,6 +16,7 @@ import {
 } from '@mui/icons-material';
 import { useRouter, usePathname } from 'next/navigation';
 import TopBar from '../TopBar';
+import GroupsIcon from '@mui/icons-material/Groups';
 
 export default function SurveyHeader() {
   const pathname = usePathname();
@@ -24,7 +25,8 @@ export default function SurveyHeader() {
   const navItems = [
     { label: 'Questions', icon: <QuestionAnswerIcon />, path: '/survey' },
     { label: 'Statistics', icon: <BarChartIcon />, path: '/statistics' },
-    { label: 'Profile', icon: <PersonIcon />, path: '/profile' }
+    { label: 'Profile', icon: <PersonIcon />, path: '/profile' },
+    { label: 'Organization', icon: <GroupsIcon />, path: '/organization' }
   ];
 
   return (

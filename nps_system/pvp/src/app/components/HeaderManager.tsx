@@ -30,7 +30,8 @@ export default function HeaderManager() {
     if (
         pathname.startsWith('/survey') ||
         pathname.startsWith('/statistics') ||
-        pathname.startsWith('/profile')
+        pathname.startsWith('/profile') ||
+        pathname.startsWith('/organization')
     ) {
         return <SurveyHeader />;
     }
