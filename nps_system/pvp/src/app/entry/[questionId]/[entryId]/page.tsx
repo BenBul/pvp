@@ -257,7 +257,7 @@ export default function EntryPage() {
                                         />
                                         <Typography variant="h6" color="primary" fontWeight={600}>{ratingValue}/5</Typography>
                                         <TextField label="Additional Comments (Optional)" multiline rows={4} value={comment} onChange={(e) => setComment(e.target.value)} fullWidth variant="outlined" sx={{ mb: 3 }} />
-                                        <Button variant="contained" color="primary" onClick={handleRatingSubmit} startIcon={<CheckCircleIcon />} size="large">
+                                        <Button variant="contained" color="primary" onClick={handleRatingSubmit} startIcon={<CheckCircleIcon />} disabled={!ratingValue} size="large">
                                             Submit Rating
                                         </Button>
                                     </Box>
