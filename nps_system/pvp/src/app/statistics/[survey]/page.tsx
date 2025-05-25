@@ -130,6 +130,8 @@ export default function SurveyStatisticsPage() {
                 .from('questions')
                 .select('id, description, type, isDeleted:is_deleted, created_at')
                 .eq('survey_id', survey)
+                .order('is_deleted', { ascending: true })
+                .order('description', { ascending: true })
                 .returns<IQuestion[]>();
             if (error) {
                 console.error('Error fetching questions:', error);
