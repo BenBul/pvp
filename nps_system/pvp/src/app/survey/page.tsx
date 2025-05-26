@@ -23,6 +23,7 @@ import SurveyItemsList from '@/app/components/dashboard/surveys/SurveyItemList';
 import TopBar from '../components/TopBar';
 import { supabase, getCachedName, getUserName } from '@/supabase/client';
 import { exportAllSurveysToCsv } from '@/utils/exportUtils';
+import { calculateUnifiedSurveyScore } from '../statistics/survey-scores/survey-scoring-utils';
 
 interface SurveyItem {
   id: string;
@@ -37,7 +38,9 @@ interface SurveyItem {
   createdAt?: string;
   positiveVotes?: number;
   negativeVotes?: number;
-  questionCount?: number;
+  npsScore?: number | null;
+  isNpsLoading?: boolean;
+  questionCount?: number; // Keep for fallback
 }
 
 export default function SurveysPage() {
@@ -53,6 +56,42 @@ export default function SurveysPage() {
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [exportLoading, setExportLoading] = useState(false);
   const pageSize = 10;
+
+  const fetchNpsScores = async (surveysList: SurveyItem[]) => {
+    const updatedSurveys = [...surveysList];
+    
+    for (let i = 0; i < updatedSurveys.length; i++) {
+      try {
+        const surveyScore = await calculateUnifiedSurveyScore(updatedSurveys[i].id);
+        
+        updatedSurveys[i] = {
+          ...updatedSurveys[i],
+          npsScore: surveyScore.score,
+          isNpsLoading: false
+        };
+        
+        setSurveyItems([...updatedSurveys]);
+        setFilteredItems(searchQuery.trim() === '' ? [...updatedSurveys] : 
+          updatedSurveys.filter(item => 
+            item.title.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        );
+      } catch (error) {
+        console.error(`Error fetching NPS score for survey ${updatedSurveys[i].id}:`, error);
+        updatedSurveys[i] = {
+          ...updatedSurveys[i],
+          npsScore: null,
+          isNpsLoading: false
+        };
+        setSurveyItems([...updatedSurveys]);
+        setFilteredItems(searchQuery.trim() === '' ? [...updatedSurveys] : 
+          updatedSurveys.filter(item => 
+            item.title.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        );
+      }
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -109,6 +148,8 @@ export default function SurveysPage() {
             hasWarning: Math.random() > 0.7,
             distance: Math.floor(Math.random() * 50),
             questionCount: item.questions.length || 0,
+            npsScore: null,
+            isNpsLoading: true
           };
         });
 
@@ -116,6 +157,9 @@ export default function SurveysPage() {
         setFilteredItems(surveyItems);
         setDisplayName(getCachedName() || await getUserName());
         setTotalPages(Math.ceil((totalItems || 0) / pageSize));
+        
+        // Fetch NPS scores after initial load
+        fetchNpsScores(surveyItems);
       } catch (error) {
         console.error('Error fetching survey items or answers:', error);
         setSurveyItems([]);
@@ -180,15 +224,17 @@ export default function SurveysPage() {
                 </Box>
                 <Box sx={{ display: 'flex', gap: 2 }}>
                   <Tooltip title="Export all surveys to CSV">
-                    <Button
-                        variant="outlined"
-                        startIcon={exportLoading ? <CircularProgress size={20} /> : <FileDownloadIcon />}
-                        onClick={handleExportAllSurveys}
-                        disabled={exportLoading || loading}
-                        sx={{ borderRadius: 28, bgcolor: 'transparent' }}
-                    >
-                      Export CSV
-                    </Button>
+                    <span>
+                      <Button
+                          variant="outlined"
+                          startIcon={exportLoading ? <CircularProgress size={20} /> : <FileDownloadIcon />}
+                          onClick={handleExportAllSurveys}
+                          disabled={exportLoading || loading}
+                          sx={{ borderRadius: 28, bgcolor: 'transparent' }}
+                      >
+                        Export CSV
+                      </Button>
+                    </span>
                   </Tooltip>
                   <Button
                       variant="contained"

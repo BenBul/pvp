@@ -16,6 +16,8 @@ interface SurveyItem {
   positiveVotes?: number;
   negativeVotes?: number;
   questionCount?: number;
+  npsScore?: number | null;
+  isNpsLoading?: boolean;
 }
 
 interface SurveyItemsListProps {

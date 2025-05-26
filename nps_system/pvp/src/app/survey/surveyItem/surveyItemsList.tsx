@@ -1,23 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   Box, 
+  Card, 
+  CardContent, 
   Typography, 
-  Paper, 
-  List, 
-  Avatar, 
-  Chip,
-  IconButton,
-  Tooltip,
-  CircularProgress
+  Chip, 
+  CircularProgress,
+  Tooltip 
 } from '@mui/material';
-import { 
-  BarChart as BarChartIcon, 
-  Warning as WarningIcon, 
-  KeyboardArrowUp as KeyboardArrowUpIcon, 
-  KeyboardArrowDown as KeyboardArrowDownIcon,
-  FileDownload as FileDownloadIcon
-} from '@mui/icons-material';
-import { exportSurveyToCsv } from '@/utils/exportUtils';
 
 interface SurveyItem {
   id: string;
@@ -32,6 +22,9 @@ interface SurveyItem {
   createdAt?: string;
   positiveVotes?: number;
   negativeVotes?: number;
+  npsScore?: number | null;
+  isNpsLoading?: boolean;
+  questionCount?: number;
 }
 
 interface SurveyItemsListProps {
@@ -40,131 +33,163 @@ interface SurveyItemsListProps {
   onSurveyClick: (surveyId: string) => void;
 }
 
-export default function SurveyItemsList({ 
+const SurveyItemsList: React.FC<SurveyItemsListProps> = ({ 
   items, 
   loading, 
   onSurveyClick 
-}: SurveyItemsListProps) {
-  const [exportingId, setExportingId] = useState<string | null>(null);
+}) => {
+  const getNpsScoreColor = (score: number) => {
+    if (score <= -50) return '#d32f2f'; // Very Negative - Red
+    if (score < 0) return '#ff5252';    // Negative - Light Red  
+    if (score === 0) return '#757575';  // Neutral - Gray
+    if (score < 50) return '#4caf50';   // Positive - Green
+    return '#2e7d32';                   // Very Positive - Dark Green
+  };
+
+  const getNpsScoreLabel = (score: number) => {
+    if (score <= -50) return 'Very Negative';
+    if (score < 0) return 'Negative';
+    if (score === 0) return 'Neutral';
+    if (score < 50) return 'Positive';
+    return 'Very Positive';
+  };
+
+  const renderNpsScore = (item: SurveyItem) => {
+    if (item.isNpsLoading) {
+      return (
+        <Tooltip title="Calculating NPS Score...">
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <CircularProgress size={16} />
+            <Typography variant="caption" color="text.secondary">
+              Loading NPS...
+            </Typography>
+          </Box>
+        </Tooltip>
+      );
+    }
+
+    if (item.npsScore !== null && item.npsScore !== undefined) {
+      return (
+        <Tooltip title={`NPS Score: ${item.npsScore} (${getNpsScoreLabel(item.npsScore)})`}>
+          <Chip
+            label={`NPS: ${item.npsScore}`}
+            size="small"
+            sx={{
+              bgcolor: getNpsScoreColor(item.npsScore),
+              color: 'white',
+              fontWeight: 'bold',
+              minWidth: '80px'
+            }}
+          />
+        </Tooltip>
+      );
+    }
+
+    // Fallback to question count if NPS not available
+    if (item.questionCount !== undefined) {
+      return (
+        <Chip
+          label={`${item.questionCount} Questions`}
+          size="small"
+          variant="outlined"
+          sx={{ minWidth: '100px' }}
+        />
+      );
+    }
+
+    return (
+      <Typography variant="caption" color="text.secondary">
+        No data
+      </Typography>
+    );
+  };
 
   if (loading) {
-    return <Typography>Loading...</Typography>;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (items.length === 0) {
     return (
-      <Paper sx={{ p: 4, textAlign: 'center' }}>
-        <Typography variant="body1">No surveys found</Typography>
-      </Paper>
+      <Box sx={{ textAlign: 'center', py: 4 }}>
+        <Typography variant="h6" color="text.secondary">
+          No surveys found
+        </Typography>
+      </Box>
     );
   }
 
-  const handleExportSurvey = async (event: React.MouseEvent, surveyId: string, title: string) => {
-    event.stopPropagation(); 
-    
-    setExportingId(surveyId);
-    try {
-      await exportSurveyToCsv(surveyId, title);
-    } catch (error) {
-      console.error("Error exporting survey:", error);
-    } finally {
-      setExportingId(null);
-    }
-  };
-
   return (
-    <List sx={{ bgcolor: 'background.paper' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
       {items.map((item) => (
-        <Paper 
-          key={item.id} 
-          elevation={0} 
+        <Card 
+          key={item.id}
           sx={{ 
-            mb: 1, 
-            p: 2, 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between',
-            border: '1px solid rgb(218, 218, 218)',
-            borderRadius: 2,
             cursor: 'pointer',
-            transition: 'background-color 0.2s',
+            transition: 'all 0.2s ease-in-out',
             '&:hover': {
-              backgroundColor: 'rgba(0, 0, 0, 0.04)'
+              transform: 'translateY(-2px)',
+              boxShadow: 3
             }
           }}
           onClick={() => onSurveyClick(item.id)}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Avatar sx={{ bgcolor: '#eee', color: '#666', mr: 2 }}>
-              <BarChartIcon />
-            </Avatar>
-            <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
-                {item.title}
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <Box sx={{ flex: 1, mr: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>
+                  {item.title}
+                </Typography>
+                
+                {item.description && (
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                    {item.description.length > 150 
+                      ? `${item.description.substring(0, 150)}...` 
+                      : item.description
+                    }
+                  </Typography>
+                )}
+
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <Chip 
+                    label={item.status || 'Active'} 
+                    size="small" 
+                    color={item.status === 'active' ? 'success' : 'default'}
+                  />
+                  
+                  {item.positiveVotes !== undefined && item.negativeVotes !== undefined && (
+                    <Typography variant="caption" color="text.secondary">
+                      Votes: {item.positiveVotes}↑ {item.negativeVotes}↓
+                    </Typography>
+                  )}
+                  
+                  <Typography variant="caption" color="text.secondary">
+                    Created: {new Date(item.created_at).toLocaleDateString()}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+                {renderNpsScore(item)}
+                
                 {item.hasWarning && (
-                  <WarningIcon sx={{ ml: 1, color: 'orange', fontSize: 20 }} />
-                )}
-                <Chip 
-                  label={item.status} 
-                  size="small" 
-                  sx={{ 
-                    ml: 1, 
-                    bgcolor: item.status === 'active' ? '#a0e57c' : '#f0f0f0',
-                    color: item.status === 'active' ? '#326015' : '#666'
-                  }} 
-                />
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                {item.category && (
-                  <Typography variant="caption" color="text.secondary">
-                    Category: {item.category}
-                  </Typography>
-                )}
-                {item.distance && (
-                  <Typography variant="caption" color="text.secondary">
-                    • {item.distance} miles away
-                  </Typography>
+                  <Chip 
+                    label="⚠" 
+                    size="small" 
+                    color="warning"
+                    sx={{ minWidth: 'auto', width: '32px' }}
+                  />
                 )}
               </Box>
-              <Typography variant="caption" color="text.secondary">
-                {item.description}
-              </Typography>
             </Box>
-          </Box>
-          <Box 
-            sx={{ display: 'flex', alignItems: 'center', gap: 2 }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography variant="body2" sx={{ mr: 1 }}>{item.positiveVotes || 0}</Typography>
-              <KeyboardArrowUpIcon sx={{ color: 'text.secondary' }} />
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography variant="body2" sx={{ mr: 1 }}>{item.negativeVotes || 0}</Typography>
-              <KeyboardArrowDownIcon sx={{ color: 'text.secondary' }} />
-            </Box>
-            <Tooltip title="Export survey to CSV">
-              <IconButton 
-                size="small"
-                color="primary"
-                onClick={(e) => handleExportSurvey(e, item.id, item.title)}
-                disabled={exportingId === item.id}
-                sx={{ 
-                  ml: 1,
-                  '&:hover': {
-                    backgroundColor: 'rgba(63, 81, 181, 0.08)'
-                  } 
-                }}
-              >
-                {exportingId === item.id ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <FileDownloadIcon fontSize="small" />
-                )}
-              </IconButton>
-            </Tooltip>
-          </Box>
-        </Paper>
+          </CardContent>
+        </Card>
       ))}
-    </List>
+    </Box>
   );
-}
+};
+
+export default SurveyItemsList;
