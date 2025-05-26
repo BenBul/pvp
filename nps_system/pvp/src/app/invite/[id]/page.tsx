@@ -31,21 +31,15 @@ export default function InvitationPage() {
     const [success, setSuccess] = useState(false);
 
     useEffect(() => {
-        console.log('useEffect triggered, invitationId:', invitationId, 'session:', session?.user);
         loadInvitation();
     }, [invitationId]);
 
     const loadInvitation = async () => {
         try {
-            console.log('Loading invitation with ID:', invitationId);
-            
-            // First try the API approach (most reliable)
             try {
-                console.log('Trying API approach...');
                 const apiResponse = await fetch(`/api/invitation/${invitationId}`);
                 const apiData = await apiResponse.json();
                 
-                console.log('API response:', { status: apiResponse.status, data: apiData });
                 
                 if (apiResponse.ok && apiData) {
                     console.log('API success, setting invitation data');
@@ -53,18 +47,14 @@ export default function InvitationPage() {
                     return;
                 }
             } catch (apiError) {
-                console.log('API approach failed, trying direct Supabase:', apiError);
             }
             
-            // Fallback to direct Supabase query
-            console.log('Trying direct Supabase approach...');
             const { data: invitationData, error: invitationError } = await supabase
                 .from('organization_invitations')
                 .select('id, organization_id, email, status, created_at')
                 .eq('id', invitationId)
                 .single();
 
-            console.log('Direct Supabase result:', { invitationData, invitationError });
 
             if (invitationError || !invitationData) {
                 console.error('Failed to load invitation:', invitationError);
@@ -73,7 +63,6 @@ export default function InvitationPage() {
             }
 
             if (invitationData.status !== 'pending') {
-                console.log('Invitation status is not pending:', invitationData.status);
                 if (invitationData.status === 'accepted') {
                     setError('This invitation has already been accepted.');
                 } else if (invitationData.status === 'rejected') {
@@ -84,10 +73,8 @@ export default function InvitationPage() {
                 return;
             }
 
-            // Check if invitation is expired (7 days)
             const inviteDate = new Date(invitationData.created_at);
             const expiryDate = new Date(inviteDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-            console.log('Invitation dates:', { inviteDate, expiryDate, now: new Date() });
             
             if (new Date() > expiryDate) {
                 console.log('Invitation has expired');
@@ -96,14 +83,12 @@ export default function InvitationPage() {
             }
 
             // Get organization details
-            console.log('Loading organization with ID:', invitationData.organization_id);
             const { data: organizationData, error: orgError } = await supabase
                 .from('organizations')
                 .select('id, title')
                 .eq('id', invitationData.organization_id)
                 .single();
 
-            console.log('Organization query result:', { organizationData, orgError });
 
             if (orgError || !organizationData) {
                 console.error('Error loading organization:', orgError);
@@ -119,7 +104,6 @@ export default function InvitationPage() {
                 }
             };
 
-            console.log('Final combined invitation data:', combinedInvitation);
             setInvitation(combinedInvitation);
 
         } catch (err) {
@@ -136,7 +120,6 @@ export default function InvitationPage() {
             return;
         }
 
-        // Check if the logged-in user's email matches the invitation
         if (session.user.email !== invitation.email) {
             setError(`This invitation was sent to ${invitation.email}. Please sign in with that email address.`);
             return;

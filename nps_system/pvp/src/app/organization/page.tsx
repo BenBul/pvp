@@ -64,7 +64,6 @@ const OrganizationPage = () => {
                 .single();
             
             if (userError || !userData?.organization) {
-                console.log('No organization found for user');
                 return;
             }
 
@@ -102,8 +101,6 @@ const OrganizationPage = () => {
                     table: 'users'
                 },
                 (payload) => {
-                    console.log('User table change detected:', payload);
-                    // Reload organization users when users table changes
                     if (organizationId) {
                         loadOrganizationUsers(organizationId);
                     }
@@ -117,22 +114,18 @@ const OrganizationPage = () => {
     }, [session?.user?.id, organizationId, justJoined]);
 
     const loadOrganizationUsers = async (orgId: string) => {
-        console.log('Loading organization users for org:', orgId);
         
-        // Use the actual columns from your users table: id, name, role, organization, created_at
         const { data, error } = await supabase
             .from('users')
             .select('id, name, role, created_at')
             .eq('organization', orgId);
-        
-        console.log('Organization users query result:', { data, error });
-        
+                
         if (!error && data) {
             setOrganizationUsers(data.map(user => ({
                 id: user.id,
-                email: user.name || 'No name available', // Use name as display text since no email
+                email: user.name || 'No name available', 
                 full_name: user.name,
-                role: user.role ? 'admin' : 'member' // Convert boolean to string
+                role: user.role ? 'admin' : 'member' 
             })));
         } else {
             console.log('Error loading organization users:', error);
@@ -152,7 +145,6 @@ const OrganizationPage = () => {
                 setPendingInvitations(data || []);
             }
         } catch (e) {
-            console.log('Invitations table not found, skipping...');
             setPendingInvitations([]);
         }
     };
