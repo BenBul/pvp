@@ -6,15 +6,17 @@ import {
 import { getCachedName, getUserName, session, setCachedName, supabase } from '@/supabase/client';
 
 const ProfilePage = () => {
-    const [name, setName] = useState('');
+    const [name, setName] = useState(''); // Keep as empty string initially
     const [initialName, setInitialName] = useState('');
     const [nameError, setNameError] = useState('');
 
     useEffect(() => {
         const loadData = async () => {
             const fetchedName = getCachedName() || (await getUserName());
-            setInitialName(fetchedName);
-            setName(fetchedName);
+            // Ensure we always have a string value (never undefined/null)
+            const safeName = fetchedName || '';
+            setInitialName(safeName);
+            setName(safeName);
         };
         loadData();
     }, []);
@@ -65,7 +67,7 @@ const ProfilePage = () => {
                     label="Name"
                     variant="outlined"
                     fullWidth
-                    value={name}
+                    value={name} // Always guaranteed to be a string
                     error={!!nameError}
                     helperText={nameError}
                     onChange={(e) => setName(e.target.value)}
