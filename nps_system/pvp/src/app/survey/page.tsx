@@ -33,8 +33,6 @@ interface SurveyItem {
   created_at: string;
   user_id: string;
   category?: string;
-  distance?: number;
-  hasWarning?: boolean;
   createdAt?: string;
   positiveVotes?: number;
   negativeVotes?: number;
@@ -145,8 +143,6 @@ export default function SurveysPage() {
             positiveVotes: votes.positive,
             negativeVotes: votes.negative,
             createdAt: item.created_at,
-            hasWarning: Math.random() > 0.7,
-            distance: Math.floor(Math.random() * 50),
             questionCount: item.questions.length || 0,
             npsScore: null,
             isNpsLoading: true

@@ -14,8 +14,6 @@ interface SurveyItemProps {
     description: string;
     status: string;
     category?: string;
-    distance?: number;
-    hasWarning?: boolean;
     positiveVotes?: number;
     negativeVotes?: number;
     questionCount?: number;
@@ -113,9 +111,6 @@ const SurveyItem: React.FC<SurveyItemProps> = ({ item, onClick }) => {
         <Box>
           <Typography variant="subtitle1" sx={{ fontWeight: 'medium' }}>
             {item.title}
-            {item.hasWarning && (
-              <WarningIcon sx={{ ml: 1, color: 'orange', fontSize: 20 }} />
-            )}
             <Chip
               label={item.status}
               size="small"
@@ -130,11 +125,6 @@ const SurveyItem: React.FC<SurveyItemProps> = ({ item, onClick }) => {
             {item.category && (
               <Typography variant="caption" color="text.secondary">
                 Category: {item.category}
-              </Typography>
-            )}
-            {item.distance && (
-              <Typography variant="caption" color="text.secondary">
-                • {item.distance} miles away
               </Typography>
             )}
           </Box>

@@ -17,8 +17,6 @@ interface SurveyItem {
   created_at: string;
   user_id: string;
   category?: string;
-  distance?: number;
-  hasWarning?: boolean;
   createdAt?: string;
   positiveVotes?: number;
   negativeVotes?: number;
@@ -174,15 +172,6 @@ const SurveyItemsList: React.FC<SurveyItemsListProps> = ({
 
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
                 {renderNpsScore(item)}
-                
-                {item.hasWarning && (
-                  <Chip 
-                    label="⚠" 
-                    size="small" 
-                    color="warning"
-                    sx={{ minWidth: 'auto', width: '32px' }}
-                  />
-                )}
               </Box>
             </Box>
           </CardContent>

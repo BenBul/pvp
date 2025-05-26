@@ -10,8 +10,6 @@ interface SurveyItem {
   created_at: string;
   user_id: string;
   category?: string;
-  distance?: number;
-  hasWarning?: boolean;
   createdAt?: string;
   positiveVotes?: number;
   negativeVotes?: number;
