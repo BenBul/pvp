@@ -40,7 +40,7 @@ const OrganizationPage = () => {
     const [createOrgOpen, setCreateOrgOpen] = useState(false);
     const [newOrgName, setNewOrgName] = useState('');
     const [newOrgNameError, setNewOrgNameError] = useState('');
-    
+
     // User management states
     const [organizationUsers, setOrganizationUsers] = useState<IUser[]>([]);
     const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
@@ -55,14 +55,14 @@ const OrganizationPage = () => {
     useEffect(() => {
         const loadData = async () => {
             if (!session?.user?.id) return;
-            
+
             // First get user data to find their organization ID
             const { data: userData, error: userError } = await supabase
                 .from('users')
                 .select('organization')
                 .eq('id', session.user.id)
                 .single();
-            
+
             if (userError || !userData?.organization) {
                 return;
             }
@@ -73,23 +73,23 @@ const OrganizationPage = () => {
                 .select('id, title, owner_id')
                 .eq('id', userData.organization)
                 .single();
-            
+
             if (!orgError && orgData) {
                 setOrganizationId(orgData.id);
                 setOrganizationName(orgData.title);
                 setIsOwner(orgData.owner_id === session.user.id);
                 loadOrganizationUsers(orgData.id);
                 loadPendingInvitations(orgData.id);
-                
+
                 // Show welcome message if user just joined
                 if (justJoined) {
                     showSnackbar(`Welcome to ${orgData.title}! You have successfully joined the organization.`, 'success');
                 }
             }
         };
-        
+
         loadData();
-        
+
         // Set up real-time subscription for user changes
         const channel = supabase
             .channel('organization-users')
@@ -114,18 +114,18 @@ const OrganizationPage = () => {
     }, [session?.user?.id, organizationId, justJoined]);
 
     const loadOrganizationUsers = async (orgId: string) => {
-        
+
         const { data, error } = await supabase
             .from('users')
             .select('id, name, role, created_at')
             .eq('organization', orgId);
-                
+
         if (!error && data) {
             setOrganizationUsers(data.map(user => ({
                 id: user.id,
-                email: user.name || 'No name available', 
+                email: user.name || 'No name available',
                 full_name: user.name,
-                role: user.role ? 'admin' : 'member' 
+                role: user.role ? 'admin' : 'member'
             })));
         } else {
             console.log('Error loading organization users:', error);
@@ -140,7 +140,7 @@ const OrganizationPage = () => {
                 .select('id, email, status, created_at')
                 .eq('organization_id', orgId)
                 .eq('status', 'pending');
-            
+
             if (!error) {
                 setPendingInvitations(data || []);
             }
@@ -164,19 +164,19 @@ const OrganizationPage = () => {
 
     const saveOrganizationName = async () => {
         if (!isOwner) return;
-        
+
         const error = validateOrganizationName(organizationName);
         if (error) {
             setOrganizationNameError(error);
             return;
         }
         setOrganizationNameError('');
-        
+
         const { error: updateError } = await supabase
             .from('organizations')
             .update({ title: organizationName })
             .eq('id', organizationId);
-            
+
         if (updateError) {
             showSnackbar('Failed to update organization name', 'error');
         } else {
@@ -192,30 +192,30 @@ const OrganizationPage = () => {
             return;
         }
         setNewOrgNameError('');
-        
+
         const { error: orgError } = await supabase
             .from('organizations')
-            .insert({ 
-                title: newOrgName, 
+            .insert({
+                title: newOrgName,
                 id,
-                owner_id: session?.user.id 
+                owner_id: session?.user.id
             });
-            
+
         if (orgError) {
             setNewOrgNameError('Failed to create organization.');
             return;
         }
-        
+
         const { error: userError } = await supabase
             .from('users')
             .update({ organization: id })
             .eq('id', session?.user.id);
-            
+
         if (userError) {
             setNewOrgNameError('Failed to assign organization.');
             return;
         }
-        
+
         setOrganizationId(id);
         setOrganizationName(newOrgName);
         setIsOwner(true);
@@ -231,8 +231,7 @@ const OrganizationPage = () => {
             return;
         }
 
-        // Since your users table doesn't have email column, we can't check for existing users by email
-        // Only check if invitation already exists
+        // Check if invitation already exists
         const existingInvitation = pendingInvitations.find(inv => inv.email === inviteEmail);
         if (existingInvitation) {
             setInviteEmailError('An invitation has already been sent to this email.');
@@ -243,14 +242,30 @@ const OrganizationPage = () => {
         setLoading(true);
 
         try {
-            // Send invitation email using API endpoint
+            // Step 1: Create invitation record in database (client-side)
+            const invitationId = crypto.randomUUID();
+            const { error: inviteError } = await supabase
+                .from('organization_invitations')
+                .insert({
+                    id: invitationId,
+                    organization_id: organizationId,
+                    email: inviteEmail,
+                    invited_by: session?.user.id,
+                    status: 'pending'
+                });
+
+            if (inviteError) {
+                console.error('Database error:', inviteError);
+                throw new Error('Failed to create invitation record');
+            }
+
+            // Step 2: Send invitation email using simplified API
             const response = await fetch("/api/send-invitation", {
                 method: "POST",
-                body: JSON.stringify({ 
-                    email: inviteEmail, 
-                    organizationId: organizationId,
+                body: JSON.stringify({
+                    email: inviteEmail,
                     organizationName: organizationName,
-                    invitedBy: session?.user.id 
+                    invitationId: invitationId  // Pass the ID for the email link
                 }),
                 headers: { "Content-Type": "application/json" },
             });
@@ -263,10 +278,20 @@ const OrganizationPage = () => {
                 setInviteEmail('');
                 loadPendingInvitations(organizationId!);
             } else {
-                showSnackbar(result.error || 'Failed to send invitation', 'error');
+                // Step 3: If email fails, clean up the invitation record
+                await supabase
+                    .from('organization_invitations')
+                    .delete()
+                    .eq('id', invitationId);
+
+                throw new Error(result.error || 'Failed to send invitation email');
             }
-        } catch (e) {
-            showSnackbar('Failed to send invitation', 'error');
+        } catch (error) {
+            console.error('Invitation error:', error);
+            showSnackbar(
+                error instanceof Error ? error.message : 'Failed to send invitation',
+                'error'
+            );
         } finally {
             setLoading(false);
         }
@@ -499,8 +524,8 @@ const OrganizationPage = () => {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setInviteDialogOpen(false)} disabled={loading}>Cancel</Button>
-                    <Button 
-                        variant="contained" 
+                    <Button
+                        variant="contained"
                         onClick={handleInviteUser}
                         disabled={loading}
                     >

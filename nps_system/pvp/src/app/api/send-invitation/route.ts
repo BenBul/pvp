@@ -1,98 +1,25 @@
 // app/api/send-invitation/route.ts
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase client with service role key for server-side operations
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-export async function POST(request: Request) {
-  try {
-    const { email, organizationId, organizationName, invitedBy } = await request.json();
+export async function POST(req: Request) {
+    const { email, organizationName, invitationId } = await req.json();
 
     // Validate required fields
-    if (!email || !organizationId || !organizationName || !invitedBy) {
-      return NextResponse.json(
-        { error: 'Missing required fields' }, 
-        { status: 400 }
-      );
+    if (!email || !organizationName || !invitationId) {
+        return NextResponse.json(
+            { error: 'Missing required fields' }, 
+            { status: 400 }
+        );
     }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' }, 
-        { status: 400 }
-      );
-    }
-
-    // Check if user already exists in organization
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', email)
-      .eq('organization', organizationId)
-      .maybeSingle();
-
-    if (existingUser) {
-      return NextResponse.json(
-        { error: 'User is already a member of this organization' }, 
-        { status: 409 }
-      );
-    }
-
-    // Check if invitation already exists
-    const { data: existingInvitation } = await supabase
-      .from('organization_invitations')
-      .select('id')
-      .eq('email', email)
-      .eq('organization_id', organizationId)
-      .eq('status', 'pending')
-      .maybeSingle();
-
-    if (existingInvitation) {
-      return NextResponse.json(
-        { error: 'An invitation has already been sent to this email' }, 
-        { status: 409 }
-      );
-    }
-
-    // Verify that the inviter is the organization owner
-    const { data: organization } = await supabase
-      .from('organizations')
-      .select('owner_id')
-      .eq('id', organizationId)
-      .single();
-
-    if (!organization || organization.owner_id !== invitedBy) {
-      return NextResponse.json(
-        { error: 'Only organization owners can send invitations' }, 
-        { status: 403 }
-      );
-    }
-
-    // Create invitation record
-    const invitationId = crypto.randomUUID();
-    const { error: inviteError } = await supabase
-      .from('organization_invitations')
-      .insert({
-        id: invitationId,
-        organization_id: organizationId,
-        email: email,
-        invited_by: invitedBy,
-        status: 'pending'
-      });
-
-    if (inviteError) {
-      console.error('Database error:', inviteError);
-      return NextResponse.json(
-        { error: 'Failed to create invitation' }, 
-        { status: 500 }
-      );
+        return NextResponse.json(
+            { error: 'Invalid email format' }, 
+            { status: 400 }
+        );
     }
 
     // Generate invitation link
@@ -140,31 +67,15 @@ export async function POST(request: Request) {
         });
 
         return NextResponse.json({ 
-          success: true, 
-          message: 'Invitation sent successfully',
-          invitationId 
+            success: true, 
+            message: 'Invitation sent successfully'
         });
 
-    } catch (emailError) {
-        console.error('Email sending error:', emailError);
-        
-        // If email fails, remove the invitation record
-        await supabase
-          .from('organization_invitations')
-          .delete()
-          .eq('id', invitationId);
-
+    } catch (error) {
+        console.error('Email sending error:', error);
         return NextResponse.json(
-          { error: 'Failed to send invitation email' }, 
-          { status: 500 }
+            { error: 'Failed to send invitation email' }, 
+            { status: 500 }
         );
     }
-
-  } catch (error) {
-    console.error('Invitation error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' }, 
-      { status: 500 }
-    );
-  }
 }
