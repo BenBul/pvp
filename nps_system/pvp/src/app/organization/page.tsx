@@ -6,7 +6,7 @@ import {
     DialogContent, DialogActions, List, ListItem, ListItemText, ListItemSecondaryAction,
     IconButton, Chip, Alert, Snackbar, Tabs, Tab
 } from '@mui/material';
-import { Delete as DeleteIcon, PersonAdd as PersonAddIcon } from '@mui/icons-material';
+import { Delete as DeleteIcon, PersonAdd as PersonAddIcon, Lock as LockIcon } from '@mui/icons-material';
 import { session, supabase } from '@/supabase/client';
 
 interface IOrganization {
@@ -77,9 +77,14 @@ const OrganizationPage = () => {
             if (!orgError && orgData) {
                 setOrganizationId(orgData.id);
                 setOrganizationName(orgData.title);
-                setIsOwner(orgData.owner_id === session.user.id);
-                loadOrganizationUsers(orgData.id);
-                loadPendingInvitations(orgData.id);
+                const userIsOwner = orgData.owner_id === session.user.id;
+                setIsOwner(userIsOwner);
+
+                // Only load users and invitations if user is owner
+                if (userIsOwner) {
+                    loadOrganizationUsers(orgData.id);
+                    loadPendingInvitations(orgData.id);
+                }
 
                 // Show welcome message if user just joined
                 if (justJoined) {
@@ -90,31 +95,35 @@ const OrganizationPage = () => {
 
         loadData();
 
-        // Set up real-time subscription for user changes
-        const channel = supabase
-            .channel('organization-users')
-            .on(
-                'postgres_changes',
-                {
-                    event: '*',
-                    schema: 'public',
-                    table: 'users'
-                },
-                (payload) => {
-                    if (organizationId) {
-                        loadOrganizationUsers(organizationId);
+        // Set up real-time subscription for user changes (only if owner)
+        let channel: any;
+        if (isOwner && organizationId) {
+            channel = supabase
+                .channel('organization-users')
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'users'
+                    },
+                    (payload) => {
+                        if (organizationId) {
+                            loadOrganizationUsers(organizationId);
+                        }
                     }
-                }
-            )
-            .subscribe();
+                )
+                .subscribe();
+        }
 
         return () => {
-            supabase.removeChannel(channel);
+            if (channel) {
+                supabase.removeChannel(channel);
+            }
         };
-    }, [session?.user?.id, organizationId, justJoined]);
+    }, [session?.user?.id, organizationId, justJoined, isOwner]);
 
     const loadOrganizationUsers = async (orgId: string) => {
-
         const { data, error } = await supabase
             .from('users')
             .select('id, name, role, created_at')
@@ -347,7 +356,7 @@ const OrganizationPage = () => {
                     Organization Management
                 </Typography>
                 <Typography variant="h6" color="text.primary">
-                    Create or manage your organization and team members.
+                    {isOwner ? 'Create or manage your organization and team members.' : 'View your organization details.'}
                 </Typography>
             </Box>
 
@@ -371,100 +380,114 @@ const OrganizationPage = () => {
                         }}
                     />
 
-                    <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-                        <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
-                            <Tab label={`Members (${organizationUsers.length})`} />
-                            <Tab label={`Pending Invitations (${pendingInvitations.length})`} />
-                        </Tabs>
-                    </Box>
-
-                    {activeTab === 0 && (
-                        <Box>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                <Typography variant="h6">Team Members</Typography>
-                                <Box sx={{ display: 'flex', gap: 1 }}>
-                                    <Button
-                                        variant="outlined"
-                                        size="small"
-                                        onClick={() => organizationId && loadOrganizationUsers(organizationId)}
-                                    >
-                                        Refresh
-                                    </Button>
-                                    {isOwner && (
-                                        <Button
-                                            variant="contained"
-                                            startIcon={<PersonAddIcon />}
-                                            onClick={() => setInviteDialogOpen(true)}
-                                            disabled={loading}
-                                        >
-                                            Invite User
-                                        </Button>
-                                    )}
-                                </Box>
+                    {isOwner ? (
+                        <>
+                            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+                                <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
+                                    <Tab label={`Members (${organizationUsers.length})`} />
+                                    <Tab label={`Pending Invitations (${pendingInvitations.length})`} />
+                                </Tabs>
                             </Box>
 
-                            <List>
-                                {organizationUsers.map((user) => (
-                                    <ListItem key={user.id} divider>
-                                        <ListItemText
-                                            primary={user.full_name || user.email}
-                                            secondary={`ID: ${user.id.substring(0, 8)}...`}
-                                        />
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: 1 }}>
-                                            {user.id === session?.user.id && (
-                                                <Chip label="You" size="small" color="primary" />
-                                            )}
-                                            {isOwner && user.id === session?.user.id && (
-                                                <Chip label="Owner" size="small" color="secondary" />
-                                            )}
-                                            {user.role === 'admin' && (
-                                                <Chip label="Admin" size="small" color="warning" />
-                                            )}
+                            {activeTab === 0 && (
+                                <Box>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                                        <Typography variant="h6">Team Members</Typography>
+                                        <Box sx={{ display: 'flex', gap: 1 }}>
+                                            <Button
+                                                variant="outlined"
+                                                size="small"
+                                                onClick={() => organizationId && loadOrganizationUsers(organizationId)}
+                                            >
+                                                Refresh
+                                            </Button>
+                                            <Button
+                                                variant="contained"
+                                                startIcon={<PersonAddIcon />}
+                                                onClick={() => setInviteDialogOpen(true)}
+                                                disabled={loading}
+                                            >
+                                                Invite User
+                                            </Button>
                                         </Box>
-                                        {isOwner && user.id !== session?.user.id && (
-                                            <ListItemSecondaryAction>
-                                                <IconButton
-                                                    edge="end"
-                                                    color="error"
-                                                    onClick={() => handleRemoveUser(user.id, user.full_name || user.id)}
-                                                >
-                                                    <DeleteIcon />
-                                                </IconButton>
-                                            </ListItemSecondaryAction>
-                                        )}
-                                    </ListItem>
-                                ))}
-                            </List>
-                        </Box>
-                    )}
+                                    </Box>
 
-                    {activeTab === 1 && (
-                        <Box>
-                            <Typography variant="h6" sx={{ mb: 2 }}>Pending Invitations</Typography>
-                            {pendingInvitations.length === 0 ? (
-                                <Typography color="text.secondary">No pending invitations</Typography>
-                            ) : (
-                                <List>
-                                    {pendingInvitations.map((invitation) => (
-                                        <ListItem key={invitation.id} divider>
-                                            <ListItemText
-                                                primary={invitation.email}
-                                                secondary={`Invited on ${new Date(invitation.created_at).toLocaleDateString()}`}
-                                            />
-                                            {isOwner && (
-                                                <ListItemSecondaryAction>
-                                                    <Button
-                                                        color="error"
-                                                        onClick={() => handleCancelInvitation(invitation.id)}
-                                                    >
-                                                        Cancel
-                                                    </Button>
-                                                </ListItemSecondaryAction>
-                                            )}
-                                        </ListItem>
-                                    ))}
-                                </List>
+                                    <List>
+                                        {organizationUsers.map((user) => (
+                                            <ListItem key={user.id} divider>
+                                                <ListItemText
+                                                    primary={user.full_name || user.email}
+                                                    secondary={`ID: ${user.id.substring(0, 8)}...`}
+                                                />
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mr: 1 }}>
+                                                    {user.id === session?.user.id && (
+                                                        <Chip label="You" size="small" color="primary" />
+                                                    )}
+                                                    {isOwner && user.id === session?.user.id && (
+                                                        <Chip label="Owner" size="small" color="secondary" />
+                                                    )}
+                                                    {user.role === 'admin' && (
+                                                        <Chip label="Admin" size="small" color="warning" />
+                                                    )}
+                                                </Box>
+                                                {user.id !== session?.user.id && (
+                                                    <ListItemSecondaryAction>
+                                                        <IconButton
+                                                            edge="end"
+                                                            color="error"
+                                                            onClick={() => handleRemoveUser(user.id, user.full_name || user.id)}
+                                                        >
+                                                            <DeleteIcon />
+                                                        </IconButton>
+                                                    </ListItemSecondaryAction>
+                                                )}
+                                            </ListItem>
+                                        ))}
+                                    </List>
+                                </Box>
                             )}
+
+                            {activeTab === 1 && (
+                                <Box>
+                                    <Typography variant="h6" sx={{ mb: 2 }}>Pending Invitations</Typography>
+                                    {pendingInvitations.length === 0 ? (
+                                        <Typography color="text.secondary">No pending invitations</Typography>
+                                    ) : (
+                                        <List>
+                                            {pendingInvitations.map((invitation) => (
+                                                <ListItem key={invitation.id} divider>
+                                                    <ListItemText
+                                                        primary={invitation.email}
+                                                        secondary={`Invited on ${new Date(invitation.created_at).toLocaleDateString()}`}
+                                                    />
+                                                    <ListItemSecondaryAction>
+                                                        <Button
+                                                            color="error"
+                                                            onClick={() => handleCancelInvitation(invitation.id)}
+                                                        >
+                                                            Cancel
+                                                        </Button>
+                                                    </ListItemSecondaryAction>
+                                                </ListItem>
+                                            ))}
+                                        </List>
+                                    )}
+                                </Box>
+                            )}
+                        </>
+                    ) : (
+                        <Box sx={{ textAlign: 'center', py: 6 }}>
+                            <LockIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
+                            <Typography variant="h5" color="text.secondary" gutterBottom>
+                                Access Restricted
+                            </Typography>
+                            <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 400, mx: 'auto' }}>
+                                You don't have permission to view team members and manage invitations. 
+                                Only organization owners can access this information.
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                You are currently a member of <strong>{organizationName}</strong>
+                            </Typography>
                         </Box>
                     )}
                 </Box>
