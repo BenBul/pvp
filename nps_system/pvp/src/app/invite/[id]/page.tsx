@@ -14,9 +14,6 @@ interface IInvitation {
     email: string;
     status: string;
     created_at: string;
-    organizations: {
-        title: string;
-    };
 }
 
 export default function InvitationPage() {
@@ -55,7 +52,6 @@ export default function InvitationPage() {
                 .eq('id', invitationId)
                 .single();
 
-
             if (invitationError || !invitationData) {
                 console.error('Failed to load invitation:', invitationError);
                 setError('Invitation not found or invalid.');
@@ -82,29 +78,7 @@ export default function InvitationPage() {
                 return;
             }
 
-            // Get organization details
-            const { data: organizationData, error: orgError } = await supabase
-                .from('organizations')
-                .select('id, title')
-                .eq('id', invitationData.organization_id)
-                .single();
-
-
-            if (orgError || !organizationData) {
-                console.error('Error loading organization:', orgError);
-                setError('Organization not found.');
-                return;
-            }
-
-            // Combine the data
-            const combinedInvitation = {
-                ...invitationData,
-                organizations: {
-                    title: organizationData.title
-                }
-            };
-
-            setInvitation(combinedInvitation);
+            setInvitation(invitationData);
 
         } catch (err) {
             console.error('Error loading invitation:', err);
@@ -208,7 +182,7 @@ export default function InvitationPage() {
                 <Paper sx={{ p: 4, textAlign: 'center' }}>
                     <CheckCircle sx={{ fontSize: 60, color: 'success.main', mb: 2 }} />
                     <Typography variant="h4" gutterBottom color="success.main">
-                        Welcome to {invitation?.organizations?.title || 'the organization'}!
+                        Welcome to the organization!
                     </Typography>
                     <Typography color="text.secondary" sx={{ mb: 3 }}>
                         You have successfully joined the organization. Redirecting to dashboard...
@@ -230,7 +204,7 @@ export default function InvitationPage() {
                     <Typography color="text.secondary" sx={{ mb: 3 }}>
                         {error || 'This invitation is not valid.'}
                     </Typography>
-                    <Button variant="outlined" onClick={() => router.push('/')}>
+                    <Button variant="outlined" onClick={() => router.push('/survey')}>
                         Go Home
                     </Button>
                 </Paper>
@@ -247,7 +221,7 @@ export default function InvitationPage() {
                         Sign In Required
                     </Typography>
                     <Typography color="text.secondary" sx={{ mb: 3 }}>
-                        You need to sign in to accept this invitation to join <strong>{invitation?.organizations?.title || 'this organization'}</strong>.
+                        You need to sign in to accept this invitation to join the organization.
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
                         <Button variant="contained" onClick={() => router.push('/login')}>
@@ -271,10 +245,7 @@ export default function InvitationPage() {
                         Organization Invitation
                     </Typography>
                     <Typography variant="h6" color="text.secondary">
-                        You've been invited to join
-                    </Typography>
-                    <Typography variant="h5" color="primary" sx={{ mt: 1, fontWeight: 600 }}>
-                        {invitation?.organizations?.title || 'Unknown Organization'}
+                        You've been invited to join an organization
                     </Typography>
                 </Box>
 
@@ -287,7 +258,7 @@ export default function InvitationPage() {
                     <br />
                     • Date: {new Date(invitation.created_at).toLocaleDateString()}
                     <br />
-                    • Organization: <strong>{invitation.organizations?.title || 'Unknown Organization'}</strong>
+                    • Organization ID: <strong>{invitation.organization_id}</strong>
                 </Alert>
 
                 {session.user.email !== invitation.email && (
@@ -320,7 +291,7 @@ export default function InvitationPage() {
                 </Box>
 
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 3 }}>
-                    By accepting this invitation, you'll become a member of {invitation.organizations?.title || 'this organization'} 
+                    By accepting this invitation, you'll become a member of this organization 
                     and gain access to organization resources and features.
                 </Typography>
             </Paper>
