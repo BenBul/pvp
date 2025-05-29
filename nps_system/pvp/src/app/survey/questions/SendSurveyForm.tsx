@@ -12,6 +12,8 @@ import {
 } from "@mui/material";
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ShortCodeModal from './ShortCodeModal';
+import { useEffect } from "react";
+import { supabase } from "@/supabase/client";
 
 type SendSurveyFormProps = {
     questionId: string;
@@ -74,7 +76,23 @@ export default function SendSurveyForm({
             setStatus("error");
         }
     };
+    useEffect(() => {
+        if (!initialShortCode) {
+            const fetchShortCode = async () => {
+                const { data, error } = await supabase
+                    .from("questions")
+                    .select("short_code")
+                    .eq("id", questionId)
+                    .single();
 
+                if (!error && data?.short_code) {
+                    setShortCode(data.short_code);
+                }
+            };
+
+            fetchShortCode();
+        }
+    }, [initialShortCode, questionId]);
     return (
         <Box sx={{ mt: 2 }}>
             {shortCode ? (

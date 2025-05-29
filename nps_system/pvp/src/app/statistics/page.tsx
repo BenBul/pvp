@@ -16,6 +16,7 @@ interface SurveyData {
     isScoreLoading: boolean;
     ratingQuestionsCount: number;
     binaryQuestionsCount: number;
+    textQuestionsCount: number;
     totalAnswersCount: number;
 }
 
@@ -41,6 +42,7 @@ export default function StatisticsPage() {
                     isScoreLoading: false,
                     ratingQuestionsCount: surveyScore.ratingQuestionsCount,
                     binaryQuestionsCount: surveyScore.binaryQuestionsCount,
+                    textQuestionsCount: surveyScore.textQuestionsCount,
                     totalAnswersCount: surveyScore.totalAnswersCount
                 };
                 
@@ -75,6 +77,7 @@ export default function StatisticsPage() {
                     isScoreLoading: true,
                     ratingQuestionsCount: 0,
                     binaryQuestionsCount: 0,
+                    textQuestionsCount: 0,
                     totalAnswersCount: 0
                 }));
                 
@@ -116,6 +119,7 @@ export default function StatisticsPage() {
                             isScoreLoading={survey.isScoreLoading}
                             ratingQuestionsCount={survey.ratingQuestionsCount}
                             binaryQuestionsCount={survey.binaryQuestionsCount}
+                            textQuestionsCount={survey.textQuestionsCount}
                             totalAnswersCount={survey.totalAnswersCount}
                             onClick={handleSurveyClick}
                         />

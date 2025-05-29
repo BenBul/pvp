@@ -11,6 +11,7 @@ interface SurveyCardProps {
     isScoreLoading: boolean;
     ratingQuestionsCount: number;
     binaryQuestionsCount: number;
+    textQuestionsCount: number;
     totalAnswersCount: number;
     onClick: (id: string) => void;
 }
@@ -22,7 +23,7 @@ const SurveyCard: React.FC<SurveyCardProps> = ({
     score, 
     isScoreLoading,
     ratingQuestionsCount,
-    binaryQuestionsCount,
+    binaryQuestionsCount,textQuestionsCount,
     totalAnswersCount,
     onClick 
 }) => {
@@ -65,10 +66,12 @@ const SurveyCard: React.FC<SurveyCardProps> = ({
                         
                         <Box sx={{ display: 'flex', flexDirection: 'column', mt: 'auto' }}>
                             <Typography variant="caption" color="text.secondary">
-                                Questions: {ratingQuestionsCount + binaryQuestionsCount}
+                                Questions: {ratingQuestionsCount + binaryQuestionsCount + (textQuestionsCount || 0)}
                                 {ratingQuestionsCount > 0 && ` (${ratingQuestionsCount} rating)`}
                                 {binaryQuestionsCount > 0 && ` (${binaryQuestionsCount} binary)`}
+                                {(textQuestionsCount || 0) > 0 && ` (${textQuestionsCount} text)`}
                             </Typography>
+
                             <Typography variant="caption" color="text.secondary">
                                 Total Answers: {totalAnswersCount}
                             </Typography>
