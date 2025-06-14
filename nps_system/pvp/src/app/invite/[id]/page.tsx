@@ -7,6 +7,7 @@ import {
 import { CheckCircle, Error, Group } from '@mui/icons-material';
 import { session, supabase } from '@/supabase/client';
 import { createClient } from '@supabase/supabase-js';
+import Home from '@/app/page';
 
 interface IInvitation {
     id: string;
@@ -51,9 +52,9 @@ export default function InvitationPage() {
                 .select('id, organization_id, email, status, created_at')
                 .eq('id', invitationId)
                 .single();
+            console.log(invitationData)
 
             if (invitationError || !invitationData) {
-                console.error('Failed to load invitation:', invitationError);
                 setError('Invitation not found or invalid.');
                 return;
             }
@@ -81,7 +82,6 @@ export default function InvitationPage() {
             setInvitation(invitationData);
 
         } catch (err) {
-            console.error('Error loading invitation:', err);
             setError('Failed to load invitation.');
         } finally {
             setLoading(false);
@@ -117,9 +117,7 @@ export default function InvitationPage() {
 
             // Update user's organization
             const { error: userError } = await supabase
-                .from('users')
-                .update({ organization: invitation.organization_id })
-                .eq('id', session.user.id);
+                .rpc("accept_organization_invite", {target_org: invitation.organization_id })
 
             if (userError) {
                 setError('Failed to join organization.');
@@ -134,7 +132,6 @@ export default function InvitationPage() {
                 .eq('id', invitationId);
 
             if (inviteError) {
-                console.error('Failed to update invitation status:', inviteError);
             }
 
             setSuccess(true);
@@ -145,7 +142,6 @@ export default function InvitationPage() {
             }, 2000);
 
         } catch (err) {
-            console.error('Error accepting invitation:', err);
             setError('An unexpected error occurred.');
         } finally {
             setAccepting(false);
@@ -193,25 +189,6 @@ export default function InvitationPage() {
         );
     }
 
-    if (error || !invitation) {
-        return (
-            <Container maxWidth="sm" sx={{ mt: 8 }}>
-                <Paper sx={{ p: 4, textAlign: 'center' }}>
-                    <Error sx={{ fontSize: 60, color: 'error.main', mb: 2 }} />
-                    <Typography variant="h5" color="error" gutterBottom>
-                        Invalid Invitation
-                    </Typography>
-                    <Typography color="text.secondary" sx={{ mb: 3 }}>
-                        {error || 'This invitation is not valid.'}
-                    </Typography>
-                    <Button variant="outlined" onClick={() => router.push('/survey')}>
-                        Go Home
-                    </Button>
-                </Paper>
-            </Container>
-        );
-    }
-
     if (!session?.user) {
         return (
             <Container maxWidth="sm" sx={{ mt: 8 }}>
@@ -235,66 +212,97 @@ export default function InvitationPage() {
             </Container>
         );
     }
-
-    return (
-        <Container maxWidth="sm" sx={{ mt: 8 }}>
-            <Paper sx={{ p: 4 }}>
-                <Box sx={{ textAlign: 'center', mb: 4 }}>
-                    <Group sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
-                    <Typography variant="h4" gutterBottom>
-                        Organization Invitation
+    else if (error || !invitation) {
+        return (
+            <Container maxWidth="sm" sx={{ mt: 8 }}>
+                <Paper sx={{ p: 4, textAlign: 'center' }}>
+                    <Error sx={{ fontSize: 60, color: 'error.main', mb: 2 }} />
+                    <Typography variant="h5" color="error" gutterBottom>
+                        Invalid Invitation
                     </Typography>
-                    <Typography variant="h6" color="text.secondary">
-                        You've been invited to join an organization
+                    <Typography color="text.secondary" sx={{ mb: 3 }}>
+                        {error || 'This invitation is not valid.'}
                     </Typography>
-                </Box>
+                    <Button variant="outlined" onClick={() => router.push('/')}>
+                        Go Home
+                    </Button>
+                </Paper>
+            </Container>
+        );
+    }
 
-                <Divider sx={{ mb: 3 }} />
 
-                <Alert severity="info" sx={{ mb: 3 }}>
-                    <strong>Invitation Details:</strong>
-                    <br />
-                    • Sent to: <strong>{invitation.email}</strong>
-                    <br />
-                    • Date: {new Date(invitation.created_at).toLocaleDateString()}
-                    <br />
-                    • Organization ID: <strong>{invitation.organization_id}</strong>
-                </Alert>
+   return (
+    <Container maxWidth="sm" sx={{ mt: 8 }}>
+        <Paper sx={{ p: 4 }}>
+            {session.user.email === invitation.email ? (
+                <>
+                    <Box sx={{ textAlign: 'center', mb: 4 }}>
+                        <Group sx={{ fontSize: 60, color: 'primary.main', mb: 2 }} />
+                        <Typography variant="h4" gutterBottom>
+                            Organization Invitation
+                        </Typography>
+                        <Typography variant="h6" color="text.secondary">
+                            You've been invited to join an organization
+                        </Typography>
+                    </Box>
 
-                {session.user.email !== invitation.email && (
-                    <Alert severity="warning" sx={{ mb: 3 }}>
-                        <strong>Email Mismatch:</strong> This invitation was sent to {invitation.email}, 
-                        but you're signed in as {session.user.email}. Please sign in with the correct email address.
+                    <Divider sx={{ mb: 3 }} />
+
+                    <Alert severity="info" sx={{ mb: 3 }}>
+                        <strong>Invitation Details:</strong>
+                        <br />
+                        • Sent to: <strong>{invitation.email}</strong>
+                        <br />
+                        • Date: {new Date(invitation.created_at).toLocaleDateString()}
+                        <br />
+                        • Organization ID: <strong>{invitation.organization_id}</strong>
                     </Alert>
-                )}
 
-                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 4 }}>
+                    <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 4 }}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleAcceptInvitation}
+                            disabled={accepting}
+                            sx={{ minWidth: 120, py: 1.5 }}
+                            startIcon={accepting ? <CircularProgress size={20} /> : <CheckCircle />}
+                        >
+                            {accepting ? 'Joining...' : 'Accept & Join'}
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            color="secondary"
+                            onClick={handleDeclineInvitation}
+                            disabled={accepting}
+                            sx={{ minWidth: 120, py: 1.5 }}
+                        >
+                            Decline
+                        </Button>
+                    </Box>
+
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 3 }}>
+                        By accepting this invitation, you'll become a member of this organization 
+                        and gain access to organization resources and features.
+                    </Typography>
+                </>
+            ) : (
+                
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3}}>
+                    <Alert severity="warning" sx={{ mb: 3 }}>
+                        <strong>Email Mismatch:</strong> You're signed in as {session.user.email}. Please sign in with the correct email address.
+                    </Alert>
                     <Button
-                        variant="contained"
+                        variant='contained'
                         color="primary"
-                        onClick={handleAcceptInvitation}
-                        disabled={accepting || session.user.email !== invitation.email}
-                        sx={{ minWidth: 120, py: 1.5 }}
-                        startIcon={accepting ? <CircularProgress size={20} /> : <CheckCircle />}
-                    >
-                        {accepting ? 'Joining...' : 'Accept & Join'}
-                    </Button>
-                    <Button
-                        variant="outlined"
-                        color="secondary"
-                        onClick={handleDeclineInvitation}
-                        disabled={accepting}
-                        sx={{ minWidth: 120, py: 1.5 }}
-                    >
-                        Decline
+                        onClick={() => window.location.href = '/survey'}
+                        sx={{ minWidth: 120, py: 1.5}}
+                        >
+                            Go to Home
                     </Button>
                 </Box>
-
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 3 }}>
-                    By accepting this invitation, you'll become a member of this organization 
-                    and gain access to organization resources and features.
-                </Typography>
-            </Paper>
-        </Container>
-    );
+            )}
+        </Paper>
+    </Container>
+);
 }
