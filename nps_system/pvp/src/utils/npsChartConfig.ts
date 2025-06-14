@@ -123,7 +123,7 @@ export const createNPSChartConfig = (npsData: NPSData[]) => {
                     max: 100,
                     ticks: {
                         stepSize: 25, 
-                        callback: function(value) {
+                        callback: function(value: any) {
                             return value + '%';
                         },
                         font: {

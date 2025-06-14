@@ -493,7 +493,7 @@ export default function QuestionStatistics() {
             },
             tooltip: {
                 enabled: true,
-                mode: 'index',
+                mode: 'index' as const,
                 intersect: false
             }
         },

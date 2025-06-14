@@ -16,11 +16,13 @@ import ShortCodeModal from './ShortCodeModal';
 type SendSurveyFormProps = {
     questionId: string;
     shortCode: string | null;
+    onRequestShortCode: () => void;
 };
 
 export default function SendSurveyForm({
                                            questionId,
-                                           shortCode: initialShortCode
+                                           shortCode: initialShortCode,
+                                           onRequestShortCode
                                        }: SendSurveyFormProps) {
 
     const [emailsInput, setEmailsInput] = useState("");
