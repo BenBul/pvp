@@ -37,6 +37,16 @@ const LoginPage = () => {
     };
 
     useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Enter') {
+                handleSubmit(email, password);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [email, password]);
+
+    useEffect(() => {
         if(session) {
             router.push('/survey');
         }
