@@ -4,9 +4,10 @@ import { useSearchParams } from 'next/navigation';
 import {
     TextField, Container, Typography, Box, Button, Dialog, DialogTitle,
     DialogContent, DialogActions, List, ListItem, ListItemText, ListItemSecondaryAction,
-    IconButton, Chip, Alert, Snackbar, Tabs, Tab
+    IconButton, Chip, Alert, Snackbar, Tabs, Tab, Select, MenuItem, FormControl,
+    InputLabel, SelectChangeEvent
 } from '@mui/material';
-import { Delete as DeleteIcon, PersonAdd as PersonAddIcon, Lock as LockIcon } from '@mui/icons-material';
+import { Delete as DeleteIcon, PersonAdd as PersonAddIcon, Lock as LockIcon, Edit as EditIcon } from '@mui/icons-material';
 import { session, supabase } from '@/supabase/client';
 
 interface IOrganization {
@@ -21,7 +22,7 @@ interface IUser {
     id: string;
     email: string;
     full_name?: string;
-    role?: string;
+    role?: 'viewer' | 'editor';
 }
 
 interface IInvitation {
@@ -52,6 +53,10 @@ const OrganizationPage = () => {
     const [isOwner, setIsOwner] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    // Role editing states
+    const [editingUserId, setEditingUserId] = useState<string | null>(null);
+    const [editingUserRole, setEditingUserRole] = useState<'viewer' | 'editor'>('viewer');
+
     useEffect(() => {
         const loadData = async () => {
             if (!session?.user?.id) return;
@@ -80,7 +85,7 @@ const OrganizationPage = () => {
                 const userIsOwner = orgData.owner_id === session.user.id;
                 setIsOwner(userIsOwner);
 
-                // Only load users and invitations if user is owner
+                // Load users and invitations if user is owner
                 if (userIsOwner) {
                     loadOrganizationUsers(orgData.id);
                     loadPendingInvitations(orgData.id);
@@ -134,7 +139,7 @@ const OrganizationPage = () => {
                 id: user.id,
                 email: user.name || 'No name available',
                 full_name: user.name,
-                role: user.role ? 'admin' : 'member'
+                role: user.role || 'viewer'
             })));
         } else {
             console.log('Error loading organization users:', error);
@@ -169,6 +174,10 @@ const OrganizationPage = () => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) return 'Please enter a valid email address.';
         return '';
+    };
+
+    const canManageUsers = () => {
+        return isOwner;
     };
 
     const saveOrganizationName = async () => {
@@ -215,15 +224,15 @@ const OrganizationPage = () => {
             return;
         }
 
-        const { error: userError } = await supabase
-            .from('users')
-            .update({ organization: id })
-            .eq('id', session?.user.id);
+        // const { error: userError } = await supabase
+        //     .from('users')
+        //     .update({ organization: id })
+        //     .eq('id', session?.user.id);
 
-        if (userError) {
-            setNewOrgNameError('Failed to assign organization.');
-            return;
-        }
+        // if (userError) {
+        //     setNewOrgNameError('Failed to assign organization.');
+        //     return;
+        // }
 
         setOrganizationId(id);
         setOrganizationName(newOrgName);
@@ -234,6 +243,8 @@ const OrganizationPage = () => {
     };
 
     const handleInviteUser = async () => {
+        if (!isOwner) return;
+
         const emailError = validateEmail(inviteEmail);
         if (emailError) {
             setInviteEmailError(emailError);
@@ -274,7 +285,7 @@ const OrganizationPage = () => {
                 body: JSON.stringify({
                     email: inviteEmail,
                     organizationName: organizationName,
-                    invitationId: invitationId  // Pass the ID for the email link
+                    invitationId: invitationId
                 }),
                 headers: { "Content-Type": "application/json" },
             });
@@ -306,7 +317,27 @@ const OrganizationPage = () => {
         }
     };
 
+    const handleEditUserRole = async (userId: string, newRole: 'viewer' | 'editor') => {
+        if (!isOwner) {
+            showSnackbar('You do not have permission to change user roles', 'error');
+            return;
+        }
+
+        const { error } = await supabase
+            .rpc("update_user_role", {target_user_id: userId, new_role: newRole});
+
+        if (error) {
+            showSnackbar('Failed to update user role', 'error');
+        } else {
+            showSnackbar('User role updated successfully', 'success');
+            setEditingUserId(null);
+            loadOrganizationUsers(organizationId!);
+        }
+    };
+
     const handleRemoveUser = async (userId: string, userEmail: string) => {
+        if (!isOwner) return;
+
         if (userId === session?.user.id) {
             showSnackbar('You cannot remove yourself from the organization', 'error');
             return;
@@ -314,9 +345,7 @@ const OrganizationPage = () => {
 
         if (confirm(`Are you sure you want to remove ${userEmail} from the organization?`)) {
             const { error } = await supabase
-                .from('users')
-                .update({ organization: null })
-                .eq('id', userId);
+                .rpc("remove_user_from_organization", {target_user_id: userId});
 
             if (error) {
                 showSnackbar('Failed to remove user', 'error');
@@ -328,6 +357,8 @@ const OrganizationPage = () => {
     };
 
     const handleCancelInvitation = async (invitationId: string) => {
+        if (!isOwner) return;
+
         const { error } = await supabase
             .from('organization_invitations')
             .delete()
@@ -338,6 +369,22 @@ const OrganizationPage = () => {
         } else {
             showSnackbar('Invitation cancelled', 'success');
             loadPendingInvitations(organizationId!);
+        }
+    };
+
+    const getRoleColor = (role: 'viewer' | 'editor') => {
+        switch (role) {
+            case 'viewer': return 'default';
+            case 'editor': return 'primary';
+            default: return 'default';
+        }
+    };
+
+    const getRoleDescription = (role: 'viewer' | 'editor') => {
+        switch (role) {
+            case 'viewer': return 'Can view content but cannot make changes';
+            case 'editor': return 'Can view and edit content';
+            default: return '';
         }
     };
 
@@ -426,11 +473,53 @@ const OrganizationPage = () => {
                                                     {isOwner && user.id === session?.user.id && (
                                                         <Chip label="Owner" size="small" color="secondary" />
                                                     )}
-                                                    {user.role === 'admin' && (
-                                                        <Chip label="Admin" size="small" color="warning" />
+                                                    
+                                                    {editingUserId === user.id ? (
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                            <FormControl size="small" sx={{ minWidth: 100 }}>
+                                                                <Select
+                                                                    value={editingUserRole}
+                                                                    onChange={(e) => setEditingUserRole(e.target.value as 'viewer' | 'editor')}
+                                                                >
+                                                                    <MenuItem value="viewer">Viewer</MenuItem>
+                                                                    <MenuItem value="editor">Editor</MenuItem>
+                                                                </Select>
+                                                            </FormControl>
+                                                            <Button
+                                                                size="small"
+                                                                onClick={() => handleEditUserRole(user.id, editingUserRole)}
+                                                            >
+                                                                Save
+                                                            </Button>
+                                                            <Button
+                                                                size="small"
+                                                                onClick={() => setEditingUserId(null)}
+                                                            >
+                                                                Cancel
+                                                            </Button>
+                                                        </Box>
+                                                    ) : (
+                                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                            <Chip 
+                                                                label={user.role || 'viewer'} 
+                                                                size="small" 
+                                                                color={getRoleColor(user.role || 'viewer')} 
+                                                            />
+                                                            {isOwner && user.id !== session?.user.id && (
+                                                                <IconButton
+                                                                    size="small"
+                                                                    onClick={() => {
+                                                                        setEditingUserId(user.id);
+                                                                        setEditingUserRole(user.role || 'viewer');
+                                                                    }}
+                                                                >
+                                                                    <EditIcon fontSize="small" />
+                                                                </IconButton>
+                                                            )}
+                                                        </Box>
                                                     )}
                                                 </Box>
-                                                {user.id !== session?.user.id && (
+                                                {user.id !== session?.user.id && isOwner && (
                                                     <ListItemSecondaryAction>
                                                         <IconButton
                                                             edge="end"
@@ -485,7 +574,7 @@ const OrganizationPage = () => {
                                 You don't have permission to view team members and manage invitations. 
                                 Only organization owners can access this information.
                             </Typography>
-                            <Typography variant="body2" color="text.secondary">
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                                 You are currently a member of <strong>{organizationName}</strong>
                             </Typography>
                         </Box>
