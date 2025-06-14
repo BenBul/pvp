@@ -121,7 +121,6 @@ export default function QuestionStatistics() {
 
     useEffect(() => {
         if (!questionId) return;
-
         const fetchData = async () => {
             setLoading(true);
             const { data: questionData, error: questionError } = await supabase
@@ -912,7 +911,7 @@ export default function QuestionStatistics() {
             {/* Improved Header with Cards for Question Information */}
             <Grid container spacing={3} sx={{ mb: 4 }}>
                 <Grid item xs={12}>
-                    <Card elevation={2} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+                    <Card elevation={2} sx={{ borderRadius: 2, overflow: 'auto' }}>
                         <Box sx={{ bgcolor: '#f5f8fa', px: 3, py: 2, borderBottom: '1px solid #e0e0e0' }}>
                             <Typography variant="h4" fontWeight="500" gutterBottom>{questionTitle}</Typography>
                         </Box>
