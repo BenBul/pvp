@@ -63,8 +63,11 @@ const QuestionItem: React.FC<QuestionItemProps> = ({
         const date = new Date(dateString);
         return date.toLocaleString();
     };
+    const baseUrl = typeof window !== 'undefined'
+        ? `${window.location.protocol}//${window.location.host}`
+        : '';
 
-    const link = `http://localhost:3000/vote/${question.id}`;
+    const link = `${baseUrl}/vote/${question.id}`;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(link);

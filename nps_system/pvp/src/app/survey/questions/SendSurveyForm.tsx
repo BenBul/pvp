@@ -32,7 +32,11 @@ export default function SendSurveyForm({
     const [shortCode, setShortCode] = useState(initialShortCode);
     const [modalOpen, setModalOpen] = useState(false);
 
-    const link = `http://localhost:3000/vote/${questionId}`;
+    const baseUrl = typeof window !== 'undefined'
+        ? `${window.location.protocol}//${window.location.host}`
+        : '';
+
+    const link = `${baseUrl}/vote/${questionId}`;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(link);
