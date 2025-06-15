@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { Delete as DeleteIcon, PersonAdd as PersonAddIcon, Lock as LockIcon, Edit as EditIcon } from '@mui/icons-material';
 import { session, supabase } from '@/supabase/client';
+import AuthGuard from '@/app/components/AuthGuard';
 
 interface IOrganization {
     id: string;
@@ -397,7 +398,8 @@ const OrganizationPage = () => {
     };
 
     return (
-        <Container maxWidth="md" sx={{ marginTop: '5%', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <AuthGuard>
+            <Container maxWidth="md" sx={{ marginTop: '5%', display: 'flex', flexDirection: 'column', gap: 4 }}>
             <Box sx={{ textAlign: 'center', mb: 4 }}>
                 <Typography variant="h4" component="h1" gutterBottom>
                     Organization Management
@@ -661,6 +663,7 @@ const OrganizationPage = () => {
                 </Alert>
             </Snackbar>
         </Container>
+        </AuthGuard>
     );
 };
 
