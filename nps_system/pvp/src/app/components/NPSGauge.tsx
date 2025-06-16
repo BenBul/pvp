@@ -29,7 +29,7 @@ const NPSGauge: React.FC<NPSGaugeProps> = ({ score, size = 'medium' }) => {
   
   const normalizedScore = Math.max(-100, Math.min(100, score)); 
   
-  const angle = 210 - ((normalizedScore + 100) / 200) * 240;
+  const angle = -135 + (normalizedScore) * 1.175;
   
   return (
     <Box 

@@ -13,19 +13,39 @@ type Answer = {
   rating?: number;
 };
 
+/**
+ * Transforms 1-5 ratings to NPS equivalent scale (1-10)
+ * 1,2 (1-5 scale) → detractors (1-6 on NPS scale)
+ * 3,4 (1-5 scale) → passives (7-8 on NPS scale)
+ * 5 (1-5 scale) → promoters (9-10 on NPS scale)
+ */
+export const transformRatingToNPSScale = (rating: number): number => {
+  if (rating <= 2) {
+    // 1,2 → detractors (map to 1-6 range)
+    return rating <= 1 ? 1 : 6;
+  } else if (rating <= 4) {
+    // 3,4 → passives (map to 7-8 range)
+    return rating === 3 ? 7 : 8;
+  } else {
+    // 5 → promoters (map to 9-10 range)
+    return 10;
+  }
+};
 
 export const calculateNPSScore = (ratings: number[]): number => {
   if (!ratings || ratings.length === 0) return 0;
   
-  const promoters = ratings.filter(r => r >= 9).length;
-  const detractors = ratings.filter(r => r <= 6).length;
+  // Transform 1-5 scale ratings to NPS scale before calculating
+  const transformedRatings = ratings.map(transformRatingToNPSScale);
   
-  const promoterPercentage = (promoters / ratings.length) * 100;
-  const detractorPercentage = (detractors / ratings.length) * 100;
+  const promoters = transformedRatings.filter(r => r >= 9).length;
+  const detractors = transformedRatings.filter(r => r <= 6).length;
+  
+  const promoterPercentage = (promoters / transformedRatings.length) * 100;
+  const detractorPercentage = (detractors / transformedRatings.length) * 100;
   
   return Math.round(promoterPercentage - detractorPercentage);
 };
-
 
 export const calculateAverageRating = (ratings: number[]): number => {
   if (!ratings || ratings.length === 0) return 0;
@@ -33,7 +53,6 @@ export const calculateAverageRating = (ratings: number[]): number => {
   const sum = ratings.reduce((acc, rating) => acc + rating, 0);
   return parseFloat((sum / ratings.length).toFixed(1));
 };
-
 
 export const calculatePositivePercentage = (answers: Answer[]): number => {
   if (!answers || answers.length === 0) return 0;

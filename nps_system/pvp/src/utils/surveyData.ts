@@ -1,5 +1,36 @@
 import { IQuestion, IAnswer, NPSData, BinaryData, TableData } from '../app/types/survey';
 
+/**
+ * Transforms 1-5 ratings to NPS equivalent scale (1-10)
+ * 1,2 (1-5 scale) → detractors (1-6 on NPS scale)
+ * 3,4 (1-5 scale) → passives (7-8 on NPS scale)
+ * 5 (1-5 scale) → promoters (9-10 on NPS scale)
+ */
+export const transformRatingToNPSScale = (rating: number): number => {
+  if (rating <= 2) {
+    // 1,2 → detractors (map to 1-6 range)
+    return rating <= 1 ? 1 : 6;
+  } else if (rating <= 4) {
+    // 3,4 → passives (map to 7-8 range)
+    return rating === 3 ? 7 : 8;
+  } else {
+    // 5 → promoters (map to 9-10 range)
+    return 10;
+  }
+};
+
+/**
+ * Categorizes original 1-5 ratings into NPS categories
+ * 1,2 → detractors
+ * 3,4 → passives  
+ * 5 → promoters
+ */
+export const categorizeRating = (rating: number): 'detractor' | 'passive' | 'promoter' => {
+  if (rating <= 2) return 'detractor';
+  if (rating <= 4) return 'passive';
+  return 'promoter';
+};
+
 export const processBinaryQuestionsData = (
     questions: IQuestion[], 
     answers: IAnswer[]
@@ -42,9 +73,10 @@ export const processComprehensiveNPSData = (
         
         if (questionAnswers.length === 0) return;
         
-        const promoters = questionAnswers.filter(a => (a.rating || 0) >= 9).length;
-        const passives = questionAnswers.filter(a => (a.rating || 0) >= 7 && (a.rating || 0) <= 8).length;
-        const detractors = questionAnswers.filter(a => (a.rating || 0) <= 6).length;
+        // Use the new categorization logic for 1-5 ratings
+        const promoters = questionAnswers.filter(a => categorizeRating(a.rating || 0) === 'promoter').length;
+        const passives = questionAnswers.filter(a => categorizeRating(a.rating || 0) === 'passive').length;
+        const detractors = questionAnswers.filter(a => categorizeRating(a.rating || 0) === 'detractor').length;
         
         const totalResponses = questionAnswers.length;
         const promoterPercentage = (promoters / totalResponses) * 100;
