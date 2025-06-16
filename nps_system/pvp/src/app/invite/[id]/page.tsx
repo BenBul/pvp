@@ -125,14 +125,6 @@ export default function InvitationPage() {
                 return;
             }
 
-            // Mark invitation as accepted
-            const { error: inviteError } = await supabase
-                .from('organization_invitations')
-                .update({ status: 'accepted' })
-                .eq('id', invitationId);
-
-            if (inviteError) {
-            }
 
             setSuccess(true);
             
@@ -287,11 +279,11 @@ export default function InvitationPage() {
                     </Typography>
                 </>
             ) : (
-                
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3}}>
-                    <Alert severity="warning" sx={{ mb: 3 }}>
+                <>
+                <Alert severity="warning" sx={{ mb: 3 }}>
                         <strong>Email Mismatch:</strong> You're signed in as {session.user.email}. Please sign in with the correct email address.
-                    </Alert>
+                </Alert>
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3}}>
                     <Button
                         variant='contained'
                         color="primary"
@@ -301,6 +293,7 @@ export default function InvitationPage() {
                             Go to Home
                     </Button>
                 </Box>
+                </>
             )}
         </Paper>
     </Container>

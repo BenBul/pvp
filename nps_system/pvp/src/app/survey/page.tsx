@@ -24,6 +24,7 @@ import TopBar from '../components/TopBar';
 import { supabase, getCachedName, getUserName } from '@/supabase/client';
 import { exportAllSurveysToCsv } from '@/utils/exportUtils';
 import { calculateUnifiedSurveyScore } from '../statistics/survey-scores/survey-scoring-utils';
+import AuthGuard from '@/app/components/AuthGuard';
 
 interface SurveyItem {
   id: string;
@@ -203,7 +204,7 @@ export default function SurveysPage() {
     }
   };
   return (
-      <>
+      <AuthGuard>
         <TopBar />
         <Box sx={{ display: 'flex', mt: 8 }}>
           <Box component="main" sx={{ flexGrow: 1, overflow: 'auto' }}>
@@ -298,6 +299,6 @@ export default function SurveysPage() {
             </Container>
           </Box>
         </Box>
-      </>
+      </AuthGuard>
   );
 }

@@ -14,6 +14,11 @@ export let session : Session | undefined = undefined;
 // };
 
 export const getSession = async () => {
+    const { data } = await supabase.auth.getSession();
+    return data.session;
+}
+
+export const getUser = async () => {
     const { data } = await supabase.auth.getUser() as UserResponse;
     return data;
 }

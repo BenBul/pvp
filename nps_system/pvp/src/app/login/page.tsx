@@ -14,6 +14,10 @@ const LoginPage = () => {
     const [loginError, setLoginError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    
+    // Get redirect URL from query params
+    const searchParams = new URLSearchParams(window.location.search);
+    const redirectTo = searchParams.get('redirectTo') || '/survey';
 
     const handleSubmit = async (email:string , password: string) => {
         setLoginError('');
@@ -29,7 +33,7 @@ const LoginPage = () => {
                 return;
             }
             if (data.user) {
-                router.push('/survey');
+                router.push(redirectTo);
             }
         } catch (error) {
             setLoginError('An error occurred. Please try again.');
@@ -48,9 +52,9 @@ const LoginPage = () => {
 
     useEffect(() => {
         if(session) {
-            router.push('/survey');
+            router.push(redirectTo);
         }
-    }, []);
+    }, [redirectTo]);
 
     const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;

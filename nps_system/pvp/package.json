@@ -16,6 +16,7 @@
     "@mui/material": "^6.4.7",
     "@mui/material-nextjs": "^6.4.3",
     "@prisma/client": "^6.4.1",
+    "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/supabase-js": "^2.49.3",
     "axios": "^1.8.3",
     "bootstrap": "^5.3.3",

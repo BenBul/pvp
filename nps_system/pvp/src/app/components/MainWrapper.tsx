@@ -7,9 +7,13 @@ const MainWrapper = ({ children }: { children: React.ReactNode }) => {
     const pathname = usePathname();
 
     const isLogin = pathname === '/login';
+    const isEntry = pathname.includes('/entry/');
+    const isVote = pathname.includes('/vote');
+
+    const shouldApplyMargins = !isLogin && !isEntry &&!isVote;
 
     return (
-        <main style={isLogin ? {} : { marginTop: '69px', marginLeft: '100px' }}>
+        <main style={shouldApplyMargins ? { marginTop: '69px', marginLeft: '100px' } : {}}>
             {children}
         </main>
     );

@@ -4,6 +4,7 @@ import {
     TextField, Container, Typography, Box
 } from '@mui/material';
 import { getCachedName, getUserName, session, setCachedName, supabase } from '@/supabase/client';
+import AuthGuard from '@/app/components/AuthGuard';
 
 const ProfilePage = () => {
     const [name, setName] = useState(''); // Keep as empty string initially
@@ -50,36 +51,38 @@ const ProfilePage = () => {
     };
 
     return (
-        <Container maxWidth="sm" sx={{ marginTop: '5%', display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <Box sx={{ textAlign: 'center', mb: 4 }}>
-                <Typography variant="h3" component="h1" gutterBottom>
-                    Welcome to Your Profile!
-                </Typography>
-                <Typography variant="h6" color="text.primary">
-                    Here you can view and update your personal information.
-                </Typography>
-                <Typography variant="h6" color="text.primary" sx={{ marginTop: '1rem' }}>
-                    Form automatically saves your information.
-                </Typography>
-            </Box>
-            <Box>
-                <TextField
-                    label="Name"
-                    variant="outlined"
-                    fullWidth
-                    value={name} // Always guaranteed to be a string
-                    error={!!nameError}
-                    helperText={nameError}
-                    onChange={(e) => setName(e.target.value)}
-                    onBlur={saveName}
-                    sx={{
-                        borderRadius: 28,
-                        bgcolor: '#f5f5f5',
-                        '&:hover': { bgcolor: '#f0f0f0' },
-                    }}
-                />
-            </Box>
-        </Container>
+        <AuthGuard>
+            <Container maxWidth="sm" sx={{ marginTop: '5%', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <Box sx={{ textAlign: 'center', mb: 4 }}>
+                    <Typography variant="h3" component="h1" gutterBottom>
+                        Welcome to Your Profile!
+                    </Typography>
+                    <Typography variant="h6" color="text.primary">
+                        Here you can view and update your personal information.
+                    </Typography>
+                    <Typography variant="h6" color="text.primary" sx={{ marginTop: '1rem' }}>
+                        Form automatically saves your information.
+                    </Typography>
+                </Box>
+                <Box>
+                    <TextField
+                        label="Name"
+                        variant="outlined"
+                        fullWidth
+                        value={name} // Always guaranteed to be a string
+                        error={!!nameError}
+                        helperText={nameError}
+                        onChange={(e) => setName(e.target.value)}
+                        onBlur={saveName}
+                        sx={{
+                            borderRadius: 28,
+                            bgcolor: '#f5f5f5',
+                            '&:hover': { bgcolor: '#f0f0f0' },
+                        }}
+                    />
+                </Box>
+            </Container>
+        </AuthGuard>
     );
 };
 

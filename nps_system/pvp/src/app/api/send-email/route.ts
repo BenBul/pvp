@@ -3,8 +3,8 @@ import nodemailer from 'nodemailer';
 
 export async function POST(req: Request) {
     const { email, questionId } = await req.json();
-
-    const link = `http://localhost:3000/vote/${questionId}`;
+    
+    const link = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/vote/${questionId}`;
 
     const transporter = nodemailer.createTransport({
         service: 'gmail',
