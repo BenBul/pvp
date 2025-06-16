@@ -182,7 +182,7 @@ export const createTableData = (
         return {
             question,
             created_at: new Date(answer.created_at).toLocaleString(),
-            ispositive: answer.ispositive !== undefined ? (answer.ispositive ? 'Yes' : 'No') : 'N/A',
+            ispositive: !!answer.ispositive ? (answer.ispositive ? 'Yes' : 'No') : 'N/A',
             rating: answer.rating !== undefined ? answer.rating : 'N/A',
             input: answer.input || 'N/A',
             question_id: answer.question_id,
