@@ -1,22 +1,22 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Container, Card, CardContent, Typography, TextField, Button, Box, Avatar, Alert } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { session, supabase } from '@/supabase/client';
 import CircularProgress from "@mui/material/CircularProgress";
 
-const LoginPage = () => {
+const LoginForm = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loginError, setLoginError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const searchParams = useSearchParams();
     
     // Get redirect URL from query params
-    const searchParams = new URLSearchParams(window.location.search);
     const redirectTo = searchParams.get('redirectTo') || '/survey';
 
     const handleSubmit = async (email:string , password: string) => {
@@ -107,6 +107,14 @@ const LoginPage = () => {
                 </CardContent>
             </Card>
         </Container>
+    );
+};
+
+const LoginPage = () => {
+    return (
+        <Suspense fallback={<CircularProgress />}>
+            <LoginForm />
+        </Suspense>
     );
 };
 
