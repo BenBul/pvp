@@ -202,7 +202,6 @@ export default function SurveysPage() {
       setExportLoading(false);
     }
   };
-
   return (
       <>
         <TopBar />

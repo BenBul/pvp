@@ -1,11 +1,16 @@
 import { supabase } from '@/supabase/client';
 import { NextRequest, NextResponse } from 'next/server';
 
+type RouteContext = {
+    params: {
+        id: string;
+    };
+};
+
 export async function POST(
     request: NextRequest,
-    context: { params: Promise<{ id: string }> }
-) {
-    const params = await context.params;
+    { params }: RouteContext
+): Promise<NextResponse> {
     const questionId = params.id;
     const { customCode } = await request.json();
     const shortCode = customCode?.trim() || Math.random().toString(36).substring(2, 8);
@@ -22,4 +27,4 @@ export async function POST(
     }
 
     return NextResponse.json({ success: true, short_code: data.short_code });
-}
+} 

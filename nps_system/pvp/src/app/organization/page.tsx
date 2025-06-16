@@ -1,11 +1,11 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
     TextField, Container, Typography, Box, Button, Dialog, DialogTitle,
     DialogContent, DialogActions, List, ListItem, ListItemText, ListItemSecondaryAction,
     IconButton, Chip, Alert, Snackbar, Tabs, Tab, Select, MenuItem, FormControl,
-    InputLabel, SelectChangeEvent
+    InputLabel, SelectChangeEvent, CircularProgress
 } from '@mui/material';
 import { Delete as DeleteIcon, PersonAdd as PersonAddIcon, Lock as LockIcon, Edit as EditIcon } from '@mui/icons-material';
 import { session, supabase } from '@/supabase/client';
@@ -32,7 +32,7 @@ interface IInvitation {
     created_at: string;
 }
 
-const OrganizationPage = () => {
+const OrganizationPageContent = () => {
     const searchParams = useSearchParams();
     const justJoined = searchParams?.get('joined') === 'true';
     const [organizationName, setOrganizationName] = useState('');
@@ -661,6 +661,18 @@ const OrganizationPage = () => {
                 </Alert>
             </Snackbar>
         </Container>
+    );
+};
+
+const OrganizationPage = () => {
+    return (
+        <Suspense fallback={
+            <Container maxWidth="md" sx={{ marginTop: '5%', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+                <CircularProgress />
+            </Container>
+        }>
+            <OrganizationPageContent />
+        </Suspense>
     );
 };
 

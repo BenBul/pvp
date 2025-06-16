@@ -29,6 +29,7 @@ import { processBinaryQuestionsData, processComprehensiveNPSData, createTableDat
 import { applyFilters } from '@/utils/filterUtils';
 import { exportSurveyToCsv } from '@/utils/exportUtils';
 import { Button, CircularProgress } from '@mui/material';
+import { session } from '@/supabase/client';
 
 ChartJS.register(
     CategoryScale,
@@ -68,6 +69,7 @@ interface TableData {
 }
 
 export default function SurveyStatisticsPage() {
+
     const { survey } = useParams();
     const [questions, setQuestions] = useState<IQuestion[]>([]);
     const [answers, setAnswers] = useState<IAnswer[]>([]);
